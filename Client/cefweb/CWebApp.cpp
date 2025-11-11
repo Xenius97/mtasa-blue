@@ -50,6 +50,8 @@ namespace
         commandLine->AppendSwitch("enable-begin-frame-scheduling");
         // Explicitly block account sign-in to avoid crashes when Google API keys are registered on the system
         commandLine->AppendSwitchWithValue("allow-browser-signin", "false");
+        // Enable proprietary codecs (H.264, AAC) for YouTube live streams and other media content
+        commandLine->AppendSwitch("enable-proprietary-codecs");
 
         if (processType.empty())
         {
