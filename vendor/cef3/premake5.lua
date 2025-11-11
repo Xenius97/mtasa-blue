@@ -21,7 +21,11 @@ project "CEF"
 		"robocopy \""..cef_path.."Release\" \""..path.."mta\" /S /IT /NFL /NDL /NJH /XF d3dcompiler_47.dll /XF *.lib",
 		"{COPY} \""..cef_path.."Resources/icudtl.dat\" \""..path.."mta\"",
 		"{COPY} \""..cef_path.."Resources/*.pak\" \""..path.."mta\"",
-		"{COPY} \""..cef_path.."Resources/locales/*\" \""..path.."mta/cef/locales\""
+		"{COPY} \""..cef_path.."Resources/locales/*\" \""..path.."mta/cef/locales\"",
+		-- Copy FFmpeg DLLs if present (for proprietary codec support - see README_FFMPEG.md)
+		"if exist \""..cef_path.."Release\\ffmpeg.dll\" {COPY} \""..cef_path.."Release/ffmpeg.dll\" \""..path.."mta\"",
+		"if exist \""..cef_path.."Release\\libffmpeg.dll\" {COPY} \""..cef_path.."Release/libffmpeg.dll\" \""..path.."mta\"",
+		"if exist \""..cef_path.."Release\\chrome_elf.dll\" {COPY} \""..cef_path.."Release/chrome_elf.dll\" \""..path.."mta\""
 	}
 
 	filter "architecture:not x86"
