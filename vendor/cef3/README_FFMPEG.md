@@ -4,13 +4,38 @@
 
 **To enable YouTube live streams:**
 
-1. **Download**: Get CEF Standard Distribution from https://cef-builds.spotifycdn.com/index.html
-2. **Extract**: Find `libffmpeg.dll` or `chrome_elf.dll` in the `Release/` folder (1-3 MB file)
-3. **Place**: Copy the DLL to `vendor/cef3/cef/Release/` in your MTA:SA source
-4. **Build**: Rebuild MTA:SA - the DLL will be automatically copied to output
-5. **Done**: YouTube live streams should now work
+### Option A: Use CEF with Built-in Proprietary Codecs (Recommended)
+Recent CEF versions (90+) include FFmpeg directly in `libcef.dll` - you need the **proprietary codecs** variant:
 
-**Quick Download Link**: https://cef-builds.spotifycdn.com/index.html (Select "Standard Distribution" for Windows x86)
+1. **Check your CEF version**: Look at your current `vendor/cef3/cef/` structure
+2. **If using older CEF (pre-90)**: You need a separate `ffmpeg.dll` (see Option B below)
+3. **If using newer CEF (90+)**: FFmpeg is in `libcef.dll` - you need to replace your entire CEF build with one that has proprietary codecs enabled
+
+### Option B: Add Separate FFmpeg DLL (For Older CEF or Minimal Builds)
+
+**Working Download Sources:**
+
+1. **GitHub - DSpeichert/cef-minimal-binary** (Direct FFmpeg DLLs):
+   - URL: https://github.com/dspeichert/cef-minimal-binary/releases
+   - Look for releases with "proprietary" in the name
+   - Download and extract `libffmpeg.dll` or `ffmpeg.dll`
+   - Size: ~1-2 MB
+
+2. **GitHub Community Builds**:
+   - Search: https://github.com/search?q=libffmpeg.dll+proprietary+codecs&type=repositories
+   - Look for CEF wrapper projects that provide proprietary codec builds
+   
+3. **Alternative: Extract from Chrome**:
+   - Download Google Chrome installer
+   - Extract it (use 7-Zip or similar)
+   - Find `chrome_elf.dll` or FFmpeg-related DLLs
+   - Copy to `vendor/cef3/cef/Release/`
+
+**Installation:**
+1. Download `libffmpeg.dll` or `ffmpeg.dll` from sources above
+2. Place it in `vendor/cef3/cef/Release/`
+3. Rebuild MTA:SA - the build system will automatically copy it
+4. YouTube live streams should now work
 
 ---
 
@@ -35,37 +60,40 @@ Place one of the following files in `vendor/cef3/cef/Release/`:
 
 ## How to Obtain
 
-### Option 1: Download Pre-built (Recommended - Easiest)
+### Option 1: Download Pre-built libffmpeg.dll (Easiest)
 
-#### **Recommended Source: CEF Builds with Proprietary Codecs**
-Download pre-built CEF distributions that include FFmpeg with proprietary codecs:
+**Note**: Modern CEF builds (90+) from Spotify often integrate FFmpeg into `libcef.dll` itself, so a separate `libffmpeg.dll` may not be included. Use these alternative sources instead:
 
-1. **Spotify CEF Builds** (Recommended):
-   - URL: https://cef-builds.spotifycdn.com/index.html
-   - Look for builds with "standard" distribution (includes proprietary codecs)
-   - Download the CEF build matching your current CEF version
-   - Extract and locate `libffmpeg.dll` or `chrome_elf.dll` from the Release folder
-   - File size: ~1-3 MB
+#### **Working Sources for libffmpeg.dll:**
 
-2. **CEF Automated Builds**:
-   - URL: https://cef-builds.spotifycdn.com/index.html
-   - Select your platform (Windows 32-bit or 64-bit)
-   - Choose "Standard Distribution" (not minimal)
-   - Download and extract to find FFmpeg DLL
+1. **GitHub - Moonlight/CEF Builds**:
+   - URL: https://github.com/topics/cef-binary
+   - Search for repositories providing CEF with proprietary codecs
+   - Look for "proprietary" or "ffmpeg" in release names
+   
+2. **RaMMicHaeL's CEF Builds** (Community maintained):
+   - Search GitHub for "cef proprietary codecs windows"
+   - Many community members provide pre-built FFmpeg DLLs
+   
+3. **Extract from Chromium/Chrome**:
+   - Download Chromium or Google Chrome standalone installer
+   - Use 7-Zip or similar to extract without installing
+   - Locate FFmpeg-related DLL (may be in different locations depending on version)
+   - Copy to `vendor/cef3/cef/Release/`
 
-3. **GitHub Community Builds**:
-   - Search for "CEF proprietary codecs" on GitHub
-   - Look for repositories providing pre-built FFmpeg DLLs
-   - Example: https://github.com/topics/cef-binary (community builds)
+4. **CEF Sharp or CefGlue Projects**:
+   - These .NET wrapper projects often bundle CEF with proprietary codecs
+   - Check their releases for pre-built binaries
+   - Example: https://github.com/cefsharp/CefSharp/releases
+   - Extract `libffmpeg.dll` from their packages
 
-#### **Alternative: Pre-built FFmpeg from Other Sources**
-If you need just the FFmpeg DLL:
-- **Zeranoe FFmpeg Builds**: https://github.com/BtbN/FFmpeg-Builds/releases
-  - Download "ffmpeg-master-latest-win32-gpl-shared.zip" or win64 version
-  - Extract and locate `avcodec-XX.dll`, `avformat-XX.dll`, `avutil-XX.dll`
-  - Note: This is full FFmpeg (larger), but includes all codecs
+#### **Important Notes:**
+- **CEF 90+** (newer): FFmpeg is often integrated into `libcef.dll`. You may need to replace the entire CEF build with a proprietary-codecs variant rather than adding a separate DLL.
+- **CEF 75-89**: Usually has separate `libffmpeg.dll` in the Release folder
+- **CEF 74 and older**: Uses `ffmpeg.dll`
+- **Version Matching**: Ensure the FFmpeg DLL version matches your CEF version for compatibility
 
-### Option 2: Build from Source (For minimal size)
+### Option 2: Build from Source (For Minimal Size)
 Build Chromium's FFmpeg with only H.264/AAC codecs:
 ```bash
 # In Chromium source tree
@@ -89,6 +117,27 @@ This produces a minimal ffmpeg library (~1-3 MB) with only proprietary codecs.
 
 ## Verification
 After installation, YouTube live streams and H.264 videos should play without "your browser can't play this video" errors.
+
+## Troubleshooting
+
+### "libffmpeg.dll not found in CEF download"
+- **Newer CEF versions (90+)**: FFmpeg is integrated into `libcef.dll`. The separate DLL may not exist.
+- **Solution**: Use one of these approaches:
+  1. Find a community build that provides a separate `libffmpeg.dll`
+  2. Replace your entire CEF installation with one built with proprietary codecs
+  3. Extract FFmpeg DLL from Chrome/Chromium browser installation
+
+### "YouTube still shows 'your browser can't play this video'"
+- Ensure the FFmpeg DLL version matches your CEF version
+- Check that the DLL is actually being copied to the output directory
+- Verify the DLL is ~1-3 MB (if much smaller, it may not include proprietary codecs)
+- Try different sources for the FFmpeg DLL
+
+### "Which file do I need?"
+- **CEF 90+**: `libffmpeg.dll` (or FFmpeg is in `libcef.dll`)
+- **CEF 75-89**: `libffmpeg.dll`
+- **CEF 74 and older**: `ffmpeg.dll`
+- When in doubt, try placing any of these files and rebuild
 
 ## Notes
 - The FFmpeg library with proprietary codecs cannot be included in this repository due to licensing and size considerations
