@@ -394,12 +394,65 @@ int CLuaResourceDefs::GetResourceExportedFunctions(lua_State* luaVM)
     return 1;
 }
 
+namespace
+{
+    // Helper function to parse filter string to enum
+    CLuaResourceDefs::eResourceFileFilter ParseFilterString(const std::string& strFilter)
+    {
+        std::string strLower = strFilter;
+        std::transform(strLower.begin(), strLower.end(), strLower.begin(), ::tolower);
+        
+        if (strLower == "map")
+            return CLuaResourceDefs::eResourceFileFilter::MAP;
+        else if (strLower == "script")
+            return CLuaResourceDefs::eResourceFileFilter::SCRIPT;
+        else if (strLower == "config")
+            return CLuaResourceDefs::eResourceFileFilter::CONFIG;
+        else if (strLower == "html")
+            return CLuaResourceDefs::eResourceFileFilter::HTML;
+        else if (strLower == "file")
+            return CLuaResourceDefs::eResourceFileFilter::FILE;
+        else
+            return CLuaResourceDefs::eResourceFileFilter::ALL;
+    }
+    
+    // Helper function to check if file matches filter
+    bool MatchesFilter(CDownloadableResource::eResourceType fileType, CLuaResourceDefs::eResourceFileFilter filter)
+    {
+        switch (filter)
+        {
+            case CLuaResourceDefs::eResourceFileFilter::ALL:
+                return true;
+            
+            case CLuaResourceDefs::eResourceFileFilter::MAP:
+                return fileType == CDownloadableResource::RESOURCE_FILE_TYPE_MAP;
+            
+            case CLuaResourceDefs::eResourceFileFilter::SCRIPT:
+                return fileType == CDownloadableResource::RESOURCE_FILE_TYPE_SCRIPT ||
+                       fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_SCRIPT;
+            
+            case CLuaResourceDefs::eResourceFileFilter::CONFIG:
+                return fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CONFIG ||
+                       fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_CONFIG;
+            
+            case CLuaResourceDefs::eResourceFileFilter::HTML:
+                return fileType == CDownloadableResource::RESOURCE_FILE_TYPE_HTML;
+            
+            case CLuaResourceDefs::eResourceFileFilter::FILE:
+                return fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_FILE;
+            
+            default:
+                return false;
+        }
+    }
+}
+
 std::vector<std::string> CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, std::optional<CResource*> optResource, std::optional<bool> optIncludeAttributes, std::optional<std::string> optFilter)
 {
     //  table getResourceFiles ( resource theResource [, bool includeAttributes = false [, string filter = "all" ] ] )
     
     CResource* pResource = optResource.value_or(nullptr);
-    std::string strFilter = optFilter.value_or("all");
+    eResourceFileFilter filter = ParseFilterString(optFilter.value_or("all"));
 
     // If no resource provided, get the current resource
     if (!pResource)
@@ -416,51 +469,17 @@ std::vector<std::string> CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, st
         throw std::invalid_argument("Invalid resource");
     }
 
-    // Convert filter string to lowercase for case-insensitive comparison
-    std::transform(strFilter.begin(), strFilter.end(), strFilter.begin(), ::tolower);
-
     // Client always returns simple array of file paths (no attributes available)
     std::vector<std::string> result;
     
     for (auto iter = pResource->IterBeginResourceFiles(); iter != pResource->IterEndResourceFiles(); ++iter)
     {
         CResourceFile* pResourceFile = *iter;
-        CDownloadableResource::eResourceType fileType = pResourceFile->GetResourceType();
-        const char* szFileName = pResourceFile->GetShortName();
-
-        // Apply filter
-        bool bIncludeFile = false;
-        if (strFilter == "all")
-        {
-            bIncludeFile = true;
-        }
-        else if (strFilter == "map")
-        {
-            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_MAP);
-        }
-        else if (strFilter == "script")
-        {
-            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_SCRIPT ||
-                            fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
-        }
-        else if (strFilter == "config")
-        {
-            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CONFIG ||
-                            fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
-        }
-        else if (strFilter == "html")
-        {
-            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_HTML);
-        }
-        else if (strFilter == "file")
-        {
-            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_FILE);
-        }
-
-        if (!bIncludeFile)
+        
+        if (!MatchesFilter(pResourceFile->GetResourceType(), filter))
             continue;
 
-        result.push_back(szFileName);
+        result.push_back(pResourceFile->GetShortName());
     }
     
     return result;

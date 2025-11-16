@@ -1073,6 +1073,59 @@ int CLuaResourceDefs::getResourceExportedFunctions(lua_State* luaVM)
     return 1;
 }
 
+namespace
+{
+    // Helper function to parse filter string to enum
+    CLuaResourceDefs::eResourceFileFilter ParseFilterString(const std::string& strFilter)
+    {
+        std::string strLower = strFilter;
+        std::transform(strLower.begin(), strLower.end(), strLower.begin(), ::tolower);
+        
+        if (strLower == "map")
+            return CLuaResourceDefs::eResourceFileFilter::MAP;
+        else if (strLower == "script")
+            return CLuaResourceDefs::eResourceFileFilter::SCRIPT;
+        else if (strLower == "config")
+            return CLuaResourceDefs::eResourceFileFilter::CONFIG;
+        else if (strLower == "html")
+            return CLuaResourceDefs::eResourceFileFilter::HTML;
+        else if (strLower == "file")
+            return CLuaResourceDefs::eResourceFileFilter::FILE;
+        else
+            return CLuaResourceDefs::eResourceFileFilter::ALL;
+    }
+    
+    // Helper function to check if file matches filter
+    bool MatchesFilter(CResourceFile::eResourceType fileType, CLuaResourceDefs::eResourceFileFilter filter)
+    {
+        switch (filter)
+        {
+            case CLuaResourceDefs::eResourceFileFilter::ALL:
+                return true;
+            
+            case CLuaResourceDefs::eResourceFileFilter::MAP:
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_MAP;
+            
+            case CLuaResourceDefs::eResourceFileFilter::SCRIPT:
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_SCRIPT ||
+                       fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_SCRIPT;
+            
+            case CLuaResourceDefs::eResourceFileFilter::CONFIG:
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_CONFIG ||
+                       fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_CONFIG;
+            
+            case CLuaResourceDefs::eResourceFileFilter::HTML:
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML;
+            
+            case CLuaResourceDefs::eResourceFileFilter::FILE:
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE;
+            
+            default:
+                return false;
+        }
+    }
+}
+
 std::variant<std::vector<std::string>, std::unordered_map<std::string, std::unordered_map<std::string, std::string>>>
 CLuaResourceDefs::getResourceFiles(lua_State* luaVM, std::optional<CResource*> optResource, std::optional<bool> optIncludeAttributes, std::optional<std::string> optFilter)
 {
@@ -1080,7 +1133,7 @@ CLuaResourceDefs::getResourceFiles(lua_State* luaVM, std::optional<CResource*> o
     
     CResource* pResource = optResource.value_or(nullptr);
     bool bIncludeAttributes = optIncludeAttributes.value_or(false);
-    std::string strFilter = optFilter.value_or("all");
+    eResourceFileFilter filter = ParseFilterString(optFilter.value_or("all"));
 
     // If no resource provided, get the current resource
     if (!pResource)
@@ -1097,9 +1150,6 @@ CLuaResourceDefs::getResourceFiles(lua_State* luaVM, std::optional<CResource*> o
         throw std::invalid_argument("Invalid resource");
     }
 
-    // Convert filter string to lowercase for case-insensitive comparison
-    std::transform(strFilter.begin(), strFilter.end(), strFilter.begin(), ::tolower);
-
     if (bIncludeAttributes)
     {
         // Return map of file paths to attributes
@@ -1108,49 +1158,14 @@ CLuaResourceDefs::getResourceFiles(lua_State* luaVM, std::optional<CResource*> o
         for (auto iter = pResource->IterBegin(); iter != pResource->IterEnd(); ++iter)
         {
             CResourceFile* pResourceFile = *iter;
-            CResourceFile::eResourceType fileType = pResourceFile->GetType();
-            const char* szFileName = pResourceFile->GetName();
-
-            // Apply filter
-            bool bIncludeFile = false;
-            if (strFilter == "all")
-            {
-                bIncludeFile = true;
-            }
-            else if (strFilter == "map")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_MAP);
-            }
-            else if (strFilter == "script")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_SCRIPT ||
-                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
-            }
-            else if (strFilter == "config")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CONFIG ||
-                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
-            }
-            else if (strFilter == "html")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML);
-            }
-            else if (strFilter == "file")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE);
-            }
-
-            if (!bIncludeFile)
+            
+            if (!MatchesFilter(pResourceFile->GetType(), filter))
                 continue;
 
             // Get the attribute map from the resource file
             const std::map<std::string, std::string>& attributeMap = pResourceFile->GetAttributeMap();
-            std::unordered_map<std::string, std::string> attrs;
-            for (const auto& pair : attributeMap)
-            {
-                attrs[pair.first] = pair.second;
-            }
-            result[szFileName] = attrs;
+            std::unordered_map<std::string, std::string> attrs(attributeMap.begin(), attributeMap.end());
+            result[pResourceFile->GetName()] = attrs;
         }
         return result;
     }
@@ -1162,42 +1177,11 @@ CLuaResourceDefs::getResourceFiles(lua_State* luaVM, std::optional<CResource*> o
         for (auto iter = pResource->IterBegin(); iter != pResource->IterEnd(); ++iter)
         {
             CResourceFile* pResourceFile = *iter;
-            CResourceFile::eResourceType fileType = pResourceFile->GetType();
-            const char* szFileName = pResourceFile->GetName();
-
-            // Apply filter
-            bool bIncludeFile = false;
-            if (strFilter == "all")
-            {
-                bIncludeFile = true;
-            }
-            else if (strFilter == "map")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_MAP);
-            }
-            else if (strFilter == "script")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_SCRIPT ||
-                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
-            }
-            else if (strFilter == "config")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CONFIG ||
-                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
-            }
-            else if (strFilter == "html")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML);
-            }
-            else if (strFilter == "file")
-            {
-                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE);
-            }
-
-            if (!bIncludeFile)
+            
+            if (!MatchesFilter(pResourceFile->GetType(), filter))
                 continue;
 
-            result.push_back(szFileName);
+            result.push_back(pResourceFile->GetName());
         }
         return result;
     }

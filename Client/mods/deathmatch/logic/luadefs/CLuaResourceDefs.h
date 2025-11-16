@@ -26,6 +26,17 @@ public:
     LUA_DECLARE(GetResourceGUIElement);
     LUA_DECLARE(GetResourceDynamicElementRoot);
     LUA_DECLARE(GetResourceExportedFunctions);
+    
+    enum class eResourceFileFilter
+    {
+        ALL,
+        MAP,
+        SCRIPT,
+        CONFIG,
+        HTML,
+        FILE
+    };
+    
     static std::vector<std::string> GetResourceFiles(lua_State* luaVM, std::optional<CResource*> pResource, std::optional<bool> includeAttributes, std::optional<std::string> filter);
     LUA_DECLARE(GetResourceState);
     LUA_DECLARE(LoadString);
