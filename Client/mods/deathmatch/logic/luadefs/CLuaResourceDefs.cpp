@@ -395,12 +395,14 @@ int CLuaResourceDefs::GetResourceExportedFunctions(lua_State* luaVM)
 
 int CLuaResourceDefs::GetResourceFiles(lua_State* luaVM)
 {
-    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false ] )
+    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false [, string filter = "all" ] ] )
     CResource*       pResource = NULL;
     bool             bIncludeAttributes;
+    SString          strFilter;
     CScriptArgReader argStream(luaVM);
     argStream.ReadUserData(pResource, NULL);
     argStream.ReadBool(bIncludeAttributes, false);
+    argStream.ReadString(strFilter, "all");
 
     // No resource given, get this resource's root
     if (pResource == NULL)
@@ -415,13 +417,49 @@ int CLuaResourceDefs::GetResourceFiles(lua_State* luaVM)
 
     if (pResource)
     {
+        // Convert filter string to lowercase for case-insensitive comparison
+        strFilter = strFilter.ToLower();
+
         lua_newtable(luaVM);
-        unsigned int                                  uiIndex = 0;
+        unsigned int                        uiIndex = 0;
         std::list<CResourceFile*>::iterator iter = pResource->IterBeginResourceFiles();
         for (; iter != pResource->IterEndResourceFiles(); ++iter)
         {
-            CResourceFile* pResourceFile = *iter;
-            const char*    szFileName = pResourceFile->GetShortName();
+            CResourceFile*                      pResourceFile = *iter;
+            CDownloadableResource::eResourceType fileType = pResourceFile->GetResourceType();
+            const char*                         szFileName = pResourceFile->GetShortName();
+
+            // Apply filter
+            bool bIncludeFile = false;
+            if (strFilter == "all")
+            {
+                bIncludeFile = true;
+            }
+            else if (strFilter == "map")
+            {
+                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_MAP);
+            }
+            else if (strFilter == "script")
+            {
+                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_SCRIPT ||
+                                fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
+            }
+            else if (strFilter == "config")
+            {
+                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CONFIG ||
+                                fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
+            }
+            else if (strFilter == "html")
+            {
+                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_HTML);
+            }
+            else if (strFilter == "file")
+            {
+                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_FILE);
+            }
+
+            if (!bIncludeFile)
+                continue;
 
             // Client doesn't have attributes, so just return file paths
             lua_pushnumber(luaVM, ++uiIndex);

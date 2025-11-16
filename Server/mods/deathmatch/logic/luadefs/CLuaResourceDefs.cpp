@@ -1072,13 +1072,15 @@ int CLuaResourceDefs::getResourceExportedFunctions(lua_State* luaVM)
 
 int CLuaResourceDefs::getResourceFiles(lua_State* luaVM)
 {
-    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false ] )
+    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false [, string filter = "all" ] ] )
     CResource* pResource;
     bool       bIncludeAttributes;
+    SString    strFilter;
 
     CScriptArgReader argStream(luaVM);
     argStream.ReadUserData(pResource, NULL);
     argStream.ReadBool(bIncludeAttributes, false);
+    argStream.ReadString(strFilter, "all");
 
     if (!argStream.HasErrors())
     {
@@ -1098,13 +1100,49 @@ int CLuaResourceDefs::getResourceFiles(lua_State* luaVM)
             }
         }
 
+        // Convert filter string to lowercase for case-insensitive comparison
+        strFilter = strFilter.ToLower();
+
         lua_newtable(luaVM);
-        unsigned int                       uiIndex = 0;
+        unsigned int                        uiIndex = 0;
         std::list<CResourceFile*>::iterator iter = pResource->IterBegin();
         for (; iter != pResource->IterEnd(); ++iter)
         {
-            CResourceFile* pResourceFile = *iter;
-            const char*    szFileName = pResourceFile->GetName();
+            CResourceFile*                  pResourceFile = *iter;
+            CResourceFile::eResourceType    fileType = pResourceFile->GetType();
+            const char*                     szFileName = pResourceFile->GetName();
+
+            // Apply filter
+            bool bIncludeFile = false;
+            if (strFilter == "all")
+            {
+                bIncludeFile = true;
+            }
+            else if (strFilter == "map")
+            {
+                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_MAP);
+            }
+            else if (strFilter == "script")
+            {
+                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_SCRIPT ||
+                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
+            }
+            else if (strFilter == "config")
+            {
+                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CONFIG ||
+                                fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
+            }
+            else if (strFilter == "html")
+            {
+                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML);
+            }
+            else if (strFilter == "file")
+            {
+                bIncludeFile = (fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE);
+            }
+
+            if (!bIncludeFile)
+                continue;
 
             if (bIncludeAttributes)
             {
