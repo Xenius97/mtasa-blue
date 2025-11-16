@@ -26,6 +26,7 @@ void CLuaResourceDefs::LoadFunctions()
         {"getResourceGUIElement", GetResourceGUIElement},
         {"getResourceDynamicElementRoot", GetResourceDynamicElementRoot},
         {"getResourceExportedFunctions", GetResourceExportedFunctions},
+        {"getResourceFiles", GetResourceFiles},
         {"getResourceState", GetResourceState},
         {"loadstring", LoadString},
         {"load", Load},
@@ -51,6 +52,7 @@ void CLuaResourceDefs::AddClass(lua_State* luaVM)
     lua_classfunction(luaVM, "getConfig", "getResourceConfig");
     lua_classfunction(luaVM, "getDynamicElementRoot", "getResourceDynamicElementRoot");
     lua_classfunction(luaVM, "getExportedFunctions", "getResourceExportedFunctions");
+    lua_classfunction(luaVM, "getFiles", "getResourceFiles");
     lua_classfunction(luaVM, "getState", "getResourceState");
 
     lua_classvariable(luaVM, "config", NULL, "getResourceConfig");
@@ -382,6 +384,49 @@ int CLuaResourceDefs::GetResourceExportedFunctions(lua_State* luaVM)
         {
             lua_pushstring(luaVM, strName.c_str());
             lua_rawseti(luaVM, -2, index++);
+        }
+        return 1;
+    }
+
+    m_pScriptDebugging->LogBadType(luaVM);
+    lua_pushboolean(luaVM, false);
+    return 1;
+}
+
+int CLuaResourceDefs::GetResourceFiles(lua_State* luaVM)
+{
+    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false ] )
+    CResource*       pResource = NULL;
+    bool             bIncludeAttributes;
+    CScriptArgReader argStream(luaVM);
+    argStream.ReadUserData(pResource, NULL);
+    argStream.ReadBool(bIncludeAttributes, false);
+
+    // No resource given, get this resource's root
+    if (pResource == NULL)
+    {
+        // Find our vm and get the root
+        CLuaMain* pLuaMain = m_pLuaManager->GetVirtualMachine(luaVM);
+        if (pLuaMain)
+        {
+            pResource = pLuaMain->GetResource();
+        }
+    }
+
+    if (pResource)
+    {
+        lua_newtable(luaVM);
+        unsigned int                                  uiIndex = 0;
+        std::list<CResourceFile*>::iterator iter = pResource->IterBeginResourceFiles();
+        for (; iter != pResource->IterEndResourceFiles(); ++iter)
+        {
+            CResourceFile* pResourceFile = *iter;
+            const char*    szFileName = pResourceFile->GetShortName();
+
+            // Client doesn't have attributes, so just return file paths
+            lua_pushnumber(luaVM, ++uiIndex);
+            lua_pushstring(luaVM, szFileName);
+            lua_settable(luaVM, -3);
         }
         return 1;
     }

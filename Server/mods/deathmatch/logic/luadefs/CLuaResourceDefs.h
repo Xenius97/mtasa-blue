@@ -52,6 +52,7 @@ public:
     LUA_DECLARE(getResourceMapRootElement);
     LUA_DECLARE(getResourceExportedFunctions);
     LUA_DECLARE(getResourceOrganizationalPath);
+    LUA_DECLARE(getResourceFiles);
     LUA_DECLARE(isResourceArchived);
 
     static std::string GetResourceName(lua_State* luaVM, std::optional<CResource*> resourceElement);

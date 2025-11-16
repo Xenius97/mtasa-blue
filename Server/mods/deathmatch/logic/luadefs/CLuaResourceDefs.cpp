@@ -60,6 +60,7 @@ void CLuaResourceDefs::LoadFunctions()
         {"getResourceMapRootElement", getResourceMapRootElement},
         {"getResourceExportedFunctions", getResourceExportedFunctions},
         {"getResourceOrganizationalPath", getResourceOrganizationalPath},
+        {"getResourceFiles", getResourceFiles},
         {"isResourceArchived", isResourceArchived},
         {"isResourceProtected", ArgumentParser<isResourceProtected>},
 
@@ -118,6 +119,7 @@ void CLuaResourceDefs::AddClass(lua_State* luaVM)
     lua_classfunction(luaVM, "getDynamicElementRoot", "getResourceDynamicElementRoot");
     lua_classfunction(luaVM, "getRootElement", "getResourceRootElement");
     lua_classfunction(luaVM, "getExportedFunctions", "getResourceExportedFunctions");
+    lua_classfunction(luaVM, "getFiles", "getResourceFiles");
     lua_classfunction(luaVM, "getOrganizationalPath", "getResourceOrganizationalPath");
     lua_classfunction(luaVM, "getLastStartTime", "getResourceLastStartTime");
     lua_classfunction(luaVM, "getLoadTime", "getResourceLoadTime");
@@ -1058,6 +1060,76 @@ int CLuaResourceDefs::getResourceExportedFunctions(lua_State* luaVM)
             lua_pushnumber(luaVM, ++uiIndex);
             lua_pushstring(luaVM, iterd->GetFunctionName().c_str());
             lua_settable(luaVM, -3);
+        }
+        return 1;
+    }
+    else
+        m_pScriptDebugging->LogCustom(luaVM, argStream.GetFullErrorMessage());
+
+    lua_pushboolean(luaVM, false);
+    return 1;
+}
+
+int CLuaResourceDefs::getResourceFiles(lua_State* luaVM)
+{
+    //  table getResourceFiles ( resource theResource [, bool includeAttributes = false ] )
+    CResource* pResource;
+    bool       bIncludeAttributes;
+
+    CScriptArgReader argStream(luaVM);
+    argStream.ReadUserData(pResource, NULL);
+    argStream.ReadBool(bIncludeAttributes, false);
+
+    if (!argStream.HasErrors())
+    {
+        if (!pResource)
+        {
+            CLuaMain* pLuaMain = m_pLuaManager->GetVirtualMachine(luaVM);
+            if (pLuaMain)
+            {
+                pResource = pLuaMain->GetResource();
+            }
+
+            // No Lua VM or no assigned resource?
+            if (!pResource)
+            {
+                lua_pushboolean(luaVM, false);
+                return 1;
+            }
+        }
+
+        lua_newtable(luaVM);
+        unsigned int                       uiIndex = 0;
+        std::list<CResourceFile*>::iterator iter = pResource->IterBegin();
+        for (; iter != pResource->IterEnd(); ++iter)
+        {
+            CResourceFile* pResourceFile = *iter;
+            const char*    szFileName = pResourceFile->GetName();
+
+            if (bIncludeAttributes)
+            {
+                // Create a subtable with the file path as key
+                lua_pushstring(luaVM, szFileName);
+                lua_newtable(luaVM);
+
+                // Get the attribute map from the resource file
+                const std::map<std::string, std::string>& attributeMap = pResourceFile->GetAttributeMap();
+                for (const auto& pair : attributeMap)
+                {
+                    lua_pushstring(luaVM, pair.first.c_str());
+                    lua_pushstring(luaVM, pair.second.c_str());
+                    lua_settable(luaVM, -3);
+                }
+
+                lua_settable(luaVM, -3);
+            }
+            else
+            {
+                // Simple array of file paths
+                lua_pushnumber(luaVM, ++uiIndex);
+                lua_pushstring(luaVM, szFileName);
+                lua_settable(luaVM, -3);
+            }
         }
         return 1;
     }
