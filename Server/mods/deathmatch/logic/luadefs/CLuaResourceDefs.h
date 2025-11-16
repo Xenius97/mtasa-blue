@@ -52,7 +52,8 @@ public:
     LUA_DECLARE(getResourceMapRootElement);
     LUA_DECLARE(getResourceExportedFunctions);
     LUA_DECLARE(getResourceOrganizationalPath);
-    LUA_DECLARE(getResourceFiles);
+    static std::variant<std::vector<std::string>, std::unordered_map<std::string, std::unordered_map<std::string, std::string>>> getResourceFiles(
+        lua_State* luaVM, std::optional<CResource*> pResource, std::optional<bool> includeAttributes, std::optional<std::string> filter);
     LUA_DECLARE(isResourceArchived);
 
     static std::string GetResourceName(lua_State* luaVM, std::optional<CResource*> resourceElement);

@@ -11,6 +11,7 @@
 
 #include "StdInc.h"
 #include <lua/CLuaFunctionParser.h>
+#include <algorithm>
 
 using std::list;
 
@@ -26,7 +27,7 @@ void CLuaResourceDefs::LoadFunctions()
         {"getResourceGUIElement", GetResourceGUIElement},
         {"getResourceDynamicElementRoot", GetResourceDynamicElementRoot},
         {"getResourceExportedFunctions", GetResourceExportedFunctions},
-        {"getResourceFiles", GetResourceFiles},
+        {"getResourceFiles", ArgumentParser<GetResourceFiles>},
         {"getResourceState", GetResourceState},
         {"loadstring", LoadString},
         {"load", Load},
@@ -393,21 +394,16 @@ int CLuaResourceDefs::GetResourceExportedFunctions(lua_State* luaVM)
     return 1;
 }
 
-int CLuaResourceDefs::GetResourceFiles(lua_State* luaVM)
+std::vector<std::string> CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, std::optional<CResource*> optResource, std::optional<bool> optIncludeAttributes, std::optional<std::string> optFilter)
 {
     //  table getResourceFiles ( resource theResource [, bool includeAttributes = false [, string filter = "all" ] ] )
-    CResource*       pResource = NULL;
-    bool             bIncludeAttributes;
-    SString          strFilter;
-    CScriptArgReader argStream(luaVM);
-    argStream.ReadUserData(pResource, NULL);
-    argStream.ReadBool(bIncludeAttributes, false);
-    argStream.ReadString(strFilter, "all");
+    
+    CResource* pResource = optResource.value_or(nullptr);
+    std::string strFilter = optFilter.value_or("all");
 
-    // No resource given, get this resource's root
-    if (pResource == NULL)
+    // If no resource provided, get the current resource
+    if (!pResource)
     {
-        // Find our vm and get the root
         CLuaMain* pLuaMain = m_pLuaManager->GetVirtualMachine(luaVM);
         if (pLuaMain)
         {
@@ -415,63 +411,59 @@ int CLuaResourceDefs::GetResourceFiles(lua_State* luaVM)
         }
     }
 
-    if (pResource)
+    if (!pResource)
     {
-        // Convert filter string to lowercase for case-insensitive comparison
-        strFilter = strFilter.ToLower();
-
-        lua_newtable(luaVM);
-        unsigned int                        uiIndex = 0;
-        std::list<CResourceFile*>::iterator iter = pResource->IterBeginResourceFiles();
-        for (; iter != pResource->IterEndResourceFiles(); ++iter)
-        {
-            CResourceFile*                      pResourceFile = *iter;
-            CDownloadableResource::eResourceType fileType = pResourceFile->GetResourceType();
-            const char*                         szFileName = pResourceFile->GetShortName();
-
-            // Apply filter
-            bool bIncludeFile = false;
-            if (strFilter == "all")
-            {
-                bIncludeFile = true;
-            }
-            else if (strFilter == "map")
-            {
-                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_MAP);
-            }
-            else if (strFilter == "script")
-            {
-                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_SCRIPT ||
-                                fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
-            }
-            else if (strFilter == "config")
-            {
-                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CONFIG ||
-                                fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
-            }
-            else if (strFilter == "html")
-            {
-                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_HTML);
-            }
-            else if (strFilter == "file")
-            {
-                bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_FILE);
-            }
-
-            if (!bIncludeFile)
-                continue;
-
-            // Client doesn't have attributes, so just return file paths
-            lua_pushnumber(luaVM, ++uiIndex);
-            lua_pushstring(luaVM, szFileName);
-            lua_settable(luaVM, -3);
-        }
-        return 1;
+        throw std::invalid_argument("Invalid resource");
     }
 
-    m_pScriptDebugging->LogBadType(luaVM);
-    lua_pushboolean(luaVM, false);
-    return 1;
+    // Convert filter string to lowercase for case-insensitive comparison
+    std::transform(strFilter.begin(), strFilter.end(), strFilter.begin(), ::tolower);
+
+    // Client always returns simple array of file paths (no attributes available)
+    std::vector<std::string> result;
+    
+    for (auto iter = pResource->IterBeginResourceFiles(); iter != pResource->IterEndResourceFiles(); ++iter)
+    {
+        CResourceFile* pResourceFile = *iter;
+        CDownloadableResource::eResourceType fileType = pResourceFile->GetResourceType();
+        const char* szFileName = pResourceFile->GetShortName();
+
+        // Apply filter
+        bool bIncludeFile = false;
+        if (strFilter == "all")
+        {
+            bIncludeFile = true;
+        }
+        else if (strFilter == "map")
+        {
+            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_MAP);
+        }
+        else if (strFilter == "script")
+        {
+            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_SCRIPT ||
+                            fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_SCRIPT);
+        }
+        else if (strFilter == "config")
+        {
+            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CONFIG ||
+                            fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_CONFIG);
+        }
+        else if (strFilter == "html")
+        {
+            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_HTML);
+        }
+        else if (strFilter == "file")
+        {
+            bIncludeFile = (fileType == CDownloadableResource::RESOURCE_FILE_TYPE_CLIENT_FILE);
+        }
+
+        if (!bIncludeFile)
+            continue;
+
+        result.push_back(szFileName);
+    }
+    
+    return result;
 }
 
 int CLuaResourceDefs::GetResourceState(lua_State* luaVM)

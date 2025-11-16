@@ -26,7 +26,7 @@ public:
     LUA_DECLARE(GetResourceGUIElement);
     LUA_DECLARE(GetResourceDynamicElementRoot);
     LUA_DECLARE(GetResourceExportedFunctions);
-    LUA_DECLARE(GetResourceFiles);
+    static std::vector<std::string> GetResourceFiles(lua_State* luaVM, std::optional<CResource*> pResource, std::optional<bool> includeAttributes, std::optional<std::string> filter);
     LUA_DECLARE(GetResourceState);
     LUA_DECLARE(LoadString);
     LUA_DECLARE(Load);
