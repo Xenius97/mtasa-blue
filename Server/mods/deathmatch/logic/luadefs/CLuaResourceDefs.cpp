@@ -1115,10 +1115,10 @@ namespace
                        fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_CONFIG;
             
             case CLuaResourceDefs::eResourceFileFilter::HTML:
-                return fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML;
-            
             case CLuaResourceDefs::eResourceFileFilter::FILE:
-                return fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE;
+                // HTML and CLIENT_FILE are both in the FILES category
+                return fileType == CResourceFile::RESOURCE_FILE_TYPE_HTML ||
+                       fileType == CResourceFile::RESOURCE_FILE_TYPE_CLIENT_FILE;
             
             default:
                 return false;
