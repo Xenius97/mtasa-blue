@@ -12,6 +12,8 @@
 #include "StdInc.h"
 #include <lua/CLuaFunctionParser.h>
 #include <algorithm>
+#include <unordered_map>
+#include <variant>
 
 using std::list;
 
@@ -447,11 +449,13 @@ namespace
     }
 }
 
-std::vector<std::string> CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, std::optional<CResource*> optResource, std::optional<bool> optIncludeAttributes, std::optional<std::string> optFilter)
+std::variant<std::vector<std::string>, std::unordered_map<std::string, std::unordered_map<std::string, std::string>>>
+CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, std::optional<CResource*> optResource, std::optional<bool> optIncludeAttributes, std::optional<std::string> optFilter)
 {
     //  table getResourceFiles ( resource theResource [, bool includeAttributes = false [, string filter = "all" ] ] )
     
     CResource* pResource = optResource.value_or(nullptr);
+    bool bIncludeAttributes = optIncludeAttributes.value_or(false);
     eResourceFileFilter filter = ParseFilterString(optFilter.value_or("all"));
 
     // If no resource provided, get the current resource
@@ -469,20 +473,44 @@ std::vector<std::string> CLuaResourceDefs::GetResourceFiles(lua_State* luaVM, st
         throw std::invalid_argument("Invalid resource");
     }
 
-    // Client always returns simple array of file paths (no attributes available)
-    std::vector<std::string> result;
-    
-    for (auto iter = pResource->IterBeginResourceFiles(); iter != pResource->IterEndResourceFiles(); ++iter)
+    if (bIncludeAttributes)
     {
-        CResourceFile* pResourceFile = *iter;
+        // Return map of file paths to attributes
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> result;
         
-        if (!MatchesFilter(pResourceFile->GetResourceType(), filter))
-            continue;
+        for (auto iter = pResource->IterBeginResourceFiles(); iter != pResource->IterEndResourceFiles(); ++iter)
+        {
+            CResourceFile* pResourceFile = *iter;
+            
+            if (!MatchesFilter(pResourceFile->GetResourceType(), filter))
+                continue;
 
-        result.push_back(pResourceFile->GetShortName());
+            // Build attributes map - client has limited attribute information
+            std::unordered_map<std::string, std::string> attrs;
+            
+            // Add download attribute (corresponds to bAutoDownload)
+            attrs["download"] = pResourceFile->IsAutoDownload() ? "true" : "false";
+            
+            result[pResourceFile->GetShortName()] = attrs;
+        }
+        return result;
     }
-    
-    return result;
+    else
+    {
+        // Return simple array of file paths
+        std::vector<std::string> result;
+        
+        for (auto iter = pResource->IterBeginResourceFiles(); iter != pResource->IterEndResourceFiles(); ++iter)
+        {
+            CResourceFile* pResourceFile = *iter;
+            
+            if (!MatchesFilter(pResourceFile->GetResourceType(), filter))
+                continue;
+
+            result.push_back(pResourceFile->GetShortName());
+        }
+        return result;
+    }
 }
 
 int CLuaResourceDefs::GetResourceState(lua_State* luaVM)
