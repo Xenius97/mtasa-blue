@@ -34,9 +34,7 @@
 #include <enums/HandlingProperty.h>
 #include <cmath>
 #include <numbers>
-#include "CClientTexture.h"
 #include <game/RenderWare.h>
-#include <core/CRenderItemManagerInterface.h>
 
 using std::list;
 
