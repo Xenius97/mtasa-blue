@@ -358,7 +358,7 @@ bool CFxSA::AddShadow(eShadowTextureType shadowTextureType, const CVector& vecPo
     {
         pRwTexture = pCustomTexture;
     }
-    else if (shadowTextureType < eShadowTextureType::COUNT && shadowTextureType != eShadowTextureType::CUSTOM)
+    else if (shadowTextureType < eShadowTextureType::COUNT)
     {
         // Get the RwTexture for the shadow
         void* textureAddress = *(void**)(TEXTURE_FXSystem_Shadow + (int)shadowTextureType * 4);

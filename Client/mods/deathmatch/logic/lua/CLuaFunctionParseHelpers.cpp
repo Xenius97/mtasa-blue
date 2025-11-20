@@ -873,7 +873,6 @@ ADD_ENUM(eShadowTextureType::BLOOD, "blood")
 ADD_ENUM(eShadowTextureType::HANDMAN, "handman")
 ADD_ENUM(eShadowTextureType::WINCRACK, "wincrack")
 ADD_ENUM(eShadowTextureType::LAMP, "lamp")
-ADD_ENUM(eShadowTextureType::CUSTOM, "custom")
 IMPLEMENT_ENUM_CLASS_END("shadow-texture-type")
 
 IMPLEMENT_ENUM_CLASS_BEGIN(eShadowType)

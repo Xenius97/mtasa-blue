@@ -34,7 +34,6 @@ enum class eShadowTextureType
     HANDMAN,
     WINCRACK,
     LAMP,
-    CUSTOM,
     COUNT
 };
 
