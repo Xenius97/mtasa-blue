@@ -36,7 +36,7 @@ void CLuaEffectDefs::LoadFunctions()
         {"setEffectDensity", SetEffectDensity},
         {"getEffectDensity", GetEffectDensity},
         {"fxCreateParticle", ArgumentParser<FxCreateParticle>},
-        {"fxAddShadow", FxAddShadow},
+        {"fxAddShadow", ArgumentParser<FxAddShadow>},
     };
 
     // Add functions
@@ -651,82 +651,48 @@ bool CLuaEffectDefs::FxCreateParticle(FxParticleSystems eParticleSystem, CVector
     return CStaticFunctionDefinitions::FxCreateParticle(eParticleSystem, vecPosition, vecDirection, fR/255, fG/255, fB/255, fA/255, bRandomizeColors.value_or(false), iCount.value_or(1), fBrightness.value_or(1.0f), fSize.value_or(0.3f), bRandomizeSizes.value_or(false), fLife.value_or(1.0f));
 }
 
-int CLuaEffectDefs::FxAddShadow(lua_State* luaVM)
+bool CLuaEffectDefs::FxAddShadow(std::variant<eShadowTextureType, CClientTexture*> shadowTextureTypeOrTexture, CVector vecPosition, CVector2D vecOffset1, CVector2D vecOffset2, SColor color,
+                                 eShadowType shadowType, float zDistance, bool bDrawOnWater, bool bDrawOnBuildings)
 {
-    // bool fxAddShadow(string/texture shadowTextureTypeOrTexture, float posX, float posY, float posZ, 
-    //                  float offset1X, float offset1Y, float offset2X, float offset2Y,
-    //                  int colorR, int colorG, int colorB, int colorA,
-    //                  string shadowType, float zDistance, bool drawOnWater, bool drawOnBuildings)
-
-    CScriptArgReader argStream(luaVM);
+    // Validate parameters
+    if (vecOffset1.Length() > 32)
+    {
+        throw std::invalid_argument("First offset can not be longer than 32 units");
+    }
+    else if (vecOffset2.Length() > 32)
+    {
+        throw std::invalid_argument("Second offset can not be longer than 32 units");
+    }
+    else if (zDistance < 0 || zDistance > 3000)
+    {
+        throw std::invalid_argument("Z Distance must be between 0.0 and 3000.0");
+    }
     
+    // Determine shadow texture type and custom texture
     eShadowTextureType shadowTextureType = eShadowTextureType::CAR;
     CClientTexture*    pCustomTexture = nullptr;
     
-    // Check if first argument is a string (texture type) or texture element
-    if (argStream.NextIsString())
+    if (std::holds_alternative<eShadowTextureType>(shadowTextureTypeOrTexture))
     {
-        argStream.ReadEnumString(shadowTextureType);
+        shadowTextureType = std::get<eShadowTextureType>(shadowTextureTypeOrTexture);
     }
-    else if (argStream.NextIsUserData())
+    else if (std::holds_alternative<CClientTexture*>(shadowTextureTypeOrTexture))
     {
-        argStream.ReadUserData(pCustomTexture);
+        pCustomTexture = std::get<CClientTexture*>(shadowTextureTypeOrTexture);
+        
+        // Validate that the texture element is valid
+        if (pCustomTexture)
+        {
+            CTextureItem* pTextureItem = pCustomTexture->GetTextureItem();
+            if (pTextureItem == nullptr || pTextureItem->m_pD3DTexture == nullptr || !pTextureItem->IsValid())
+            {
+                throw std::invalid_argument("Invalid or destroyed texture element");
+            }
+        }
+        
         // Use CAR as dummy value, will be ignored since pCustomTexture is not null
         shadowTextureType = eShadowTextureType::CAR;
     }
-    else
-    {
-        argStream.SetTypeError("string or texture", 1);
-    }
     
-    CVector   vecPosition;
-    CVector2D vecOffset1, vecOffset2;
-    SColor    color;
-    eShadowType shadowType;
-    float     zDistance;
-    bool      bDrawOnWater, bDrawOnBuildings;
-    
-    argStream.ReadVector3D(vecPosition);
-    argStream.ReadVector2D(vecOffset1);
-    argStream.ReadVector2D(vecOffset2);
-    argStream.ReadNumber(color.R);
-    argStream.ReadNumber(color.G);
-    argStream.ReadNumber(color.B);
-    argStream.ReadNumber(color.A);
-    argStream.ReadEnumString(shadowType);
-    argStream.ReadNumber(zDistance);
-    argStream.ReadBool(bDrawOnWater);
-    argStream.ReadBool(bDrawOnBuildings);
-
-    if (!argStream.HasErrors())
-    {
-        // Validate parameters
-        if (vecOffset1.Length() > 32)
-        {
-            argStream.SetCustomError("First offset can not be longer than 32 units");
-        }
-        else if (vecOffset2.Length() > 32)
-        {
-            argStream.SetCustomError("Second offset can not be longer than 32 units");
-        }
-        else if (zDistance < 0 || zDistance > 3000)
-        {
-            argStream.SetCustomError("Z Distance must be between 0.0 and 3000.0");
-        }
-        
-        if (!argStream.HasErrors())
-        {
-            if (CStaticFunctionDefinitions::FxAddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, zDistance, bDrawOnWater, bDrawOnBuildings, pCustomTexture))
-            {
-                lua_pushboolean(luaVM, true);
-                return 1;
-            }
-        }
-    }
-    
-    if (argStream.HasErrors())
-        m_pScriptDebugging->LogCustom(luaVM, argStream.GetFullErrorMessage());
-
-    lua_pushboolean(luaVM, false);
-    return 1;
+    return CStaticFunctionDefinitions::FxAddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, zDistance, bDrawOnWater, bDrawOnBuildings, pCustomTexture);
 }

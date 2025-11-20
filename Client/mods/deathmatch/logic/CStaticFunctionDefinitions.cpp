@@ -8091,18 +8091,28 @@ bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureTyp
     if (pTexture != nullptr)
     {
         CTextureItem* pTextureItem = pTexture->GetTextureItem();
-        if (pTextureItem && pTextureItem->m_pD3DTexture)
+        
+        // Validate texture item and D3D texture to prevent crashes
+        if (pTextureItem == nullptr || pTextureItem->m_pD3DTexture == nullptr)
         {
-            // Create a fake RwRaster that points to the DX9 texture
-            customRaster.renderResource = pTextureItem->m_pD3DTexture;
-            customRaster.width = pTextureItem->m_uiSurfaceSizeX;
-            customRaster.height = pTextureItem->m_uiSurfaceSizeY;
-            
-            // Create a fake RwTexture that points to our raster
-            customTexture.raster = &customRaster;
-            
-            pCustomTexture = &customTexture;
+            return false;
         }
+        
+        // Additional validation: check if texture is valid
+        if (!pTextureItem->IsValid())
+        {
+            return false;
+        }
+        
+        // Create a fake RwRaster that points to the DX9 texture
+        customRaster.renderResource = pTextureItem->m_pD3DTexture;
+        customRaster.width = pTextureItem->m_uiSurfaceSizeX;
+        customRaster.height = pTextureItem->m_uiSurfaceSizeY;
+        
+        // Create a fake RwTexture that points to our raster
+        customTexture.raster = &customRaster;
+        
+        pCustomTexture = &customTexture;
     }
 
     return g_pGame->GetFx()->AddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, fZDistance, bDrawOnWater, bDrawOnBuildings, pCustomTexture);
