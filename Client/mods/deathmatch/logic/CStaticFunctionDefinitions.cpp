@@ -8083,11 +8083,13 @@ bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureTyp
 {
     RwTexture* pCustomTexture = nullptr;
     
-    // Static storage for fake RwTexture structures (shadows are rendered once per frame, so static is safe)
+    // Static storage for temporary RwTexture structures
+    // We'll copy an existing shadow texture and modify its raster to point to our custom D3D texture
     static RwRaster s_customRaster = {};
     static RwTexture s_customTexture = {};
+    static bool s_initialized = false;
 
-    // If a custom texture is provided, create a fake RwTexture
+    // If a custom texture is provided, set up a temporary RwTexture
     if (pTexture != nullptr)
     {
         CTextureItem* pTextureItem = pTexture->GetTextureItem();
@@ -8104,17 +8106,35 @@ bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureTyp
             return false;
         }
         
-        // Create a fake RwRaster that points to the DX9 texture
-        memset(&s_customRaster, 0, sizeof(RwRaster));
+        // On first use, copy the structure from an existing shadow texture (CAR) as a template
+        if (!s_initialized)
+        {
+            void* carTextureAddress = *(void**)(0xC403E0 + (int)eShadowTextureType::CAR * 4);  // TEXTURE_FXSystem_Shadow
+            RwTexture* pCarTexture = reinterpret_cast<RwTexture*>(carTextureAddress);
+            
+            if (pCarTexture && pCarTexture->raster)
+            {
+                // Copy the existing texture and raster structures as templates
+                memcpy(&s_customTexture, pCarTexture, sizeof(RwTexture));
+                memcpy(&s_customRaster, pCarTexture->raster, sizeof(RwRaster));
+                
+                // Point our custom texture to our custom raster
+                s_customTexture.raster = &s_customRaster;
+                s_initialized = true;
+            }
+            else
+            {
+                return false;  // Can't get template texture
+            }
+        }
+        
+        // Update the raster to point to our custom D3D texture
+        // Keep all other fields from the template
         s_customRaster.renderResource = pTextureItem->m_pD3DTexture;
         s_customRaster.width = pTextureItem->m_uiSurfaceSizeX;
         s_customRaster.height = pTextureItem->m_uiSurfaceSizeY;
-        s_customRaster.depth = 32;  // Assuming 32-bit depth
-        s_customRaster.format = 21; // D3DFMT_A8R8G8B8
-        
-        // Create a fake RwTexture that points to our raster
-        memset(&s_customTexture, 0, sizeof(RwTexture));
-        s_customTexture.raster = &s_customRaster;
+        s_customRaster.origWidth = pTextureItem->m_uiSurfaceSizeX;
+        s_customRaster.origHeight = pTextureItem->m_uiSurfaceSizeY;
         
         pCustomTexture = &s_customTexture;
     }
