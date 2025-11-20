@@ -81,7 +81,7 @@ public:
     void TriggerFootSplash(CVector& vecPosition);
     void AddParticle(FxParticleSystems eFxParticle, const CVector& vecPosition, const CVector& vecDirection, float fR, float fG, float fB, float fA, bool bRandomizeColors, std::uint32_t iCount, float fBrightness, float fSize, bool bRandomizeSizes, float fLife);
     bool AddShadow(eShadowTextureType shadowTextureType, const CVector& vecPosition, const CVector2D& vecOffset1, const CVector2D& vecOffset2, SColor color,
-                   eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings);
+                   eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings, RwTexture* pCustomTexture = nullptr);
     static bool IsShadowsLimitReached();
 
 private:

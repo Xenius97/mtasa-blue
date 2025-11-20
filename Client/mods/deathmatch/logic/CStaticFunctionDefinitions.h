@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 class CStaticFunctionDefinitions;
+class CClientTexture;
 
 #pragma once
 
@@ -741,7 +742,7 @@ public:
     static bool           FxAddFootSplash(CVector& vecPosition);
     static bool           FxCreateParticle(FxParticleSystems eFxParticle, CVector& vecPosition, CVector& vecDirection, float fR, float fG, float fB, float fA, bool bRandomizeColors, std::uint32_t iCount, float fBrightness, float fSize, bool bRandomizeSizes, float fLife);
     static bool FxAddShadow(eShadowTextureType shadowTextureType, const CVector& vecPosition, const CVector2D& vecOffset1, const CVector2D& vecOffset2,
-                            SColor color, eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings);
+                            SColor color, eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings, CClientTexture* pTexture = nullptr);
     static CClientEffect* CreateEffect(CResource& Resource, const SString& strFxName, const CVector& vecPosition, bool bSoundEnable);
 
     // Sound funcs

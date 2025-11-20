@@ -18,6 +18,7 @@ class CVector;
 class CVector2D;
 class CVehicle;
 struct RwColor;
+struct RwTexture;
 
 enum class eShadowTextureType
 {
@@ -33,6 +34,7 @@ enum class eShadowTextureType
     HANDMAN,
     WINCRACK,
     LAMP,
+    CUSTOM,
     COUNT
 };
 
@@ -65,5 +67,5 @@ public:
     virtual void TriggerFootSplash(CVector& vecPosition) = 0;
     virtual void AddParticle(FxParticleSystems eFxParticle, const CVector& vecPosition, const CVector& vecDirection, float fR, float fG, float fB, float fA, bool bRandomizeColors, std::uint32_t iCount, float fBrightness, float fSize, bool bRandomizeSizes, float fLife) = 0;
     virtual bool AddShadow(eShadowTextureType shadowTextureType, const CVector& vecPosition, const CVector2D& vecOffset1, const CVector2D& vecOffset2,
-                           SharedUtil::SColor color, eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings) = 0;
+                           SharedUtil::SColor color, eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings, RwTexture* pCustomTexture = nullptr) = 0;
 };

@@ -42,5 +42,5 @@ public:
                                  std::optional<bool> bRandomizeColors, std::optional<std::uint32_t> iCount, std::optional<float> fBrightness,
                                  std::optional<float> fSize, std::optional<bool> bRandomizeSizes, std::optional<float> fLife);
     static bool        FxAddShadow(eShadowTextureType shadowTextureType, CVector vecPosition, CVector2D vecOffset1, CVector2D vecOffset2, SColor color,
-                            eShadowType shadowType, float zDistance, bool bDrawOnWater, bool bDrawOnBuildings);
+                            eShadowType shadowType, float zDistance, bool bDrawOnWater, bool bDrawOnBuildings, std::optional<CClientTexture*> pTexture);
 };

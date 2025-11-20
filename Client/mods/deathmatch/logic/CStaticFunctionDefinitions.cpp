@@ -34,6 +34,9 @@
 #include <enums/HandlingProperty.h>
 #include <cmath>
 #include <numbers>
+#include "CClientTexture.h"
+#include <game/RenderWare.h>
+#include <core/CRenderItemManagerInterface.h>
 
 using std::list;
 
@@ -8078,9 +8081,31 @@ bool CStaticFunctionDefinitions::FxCreateParticle(FxParticleSystems eFxParticle,
 
 bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureType, const CVector& vecPosition, const CVector2D& vecOffset1,
                                              const CVector2D& vecOffset2, SColor color, eShadowType shadowType, float fZDistance, bool bDrawOnWater,
-                                             bool bDrawOnBuildings)
+                                             bool bDrawOnBuildings, CClientTexture* pTexture)
 {
-    return g_pGame->GetFx()->AddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, fZDistance, bDrawOnWater, bDrawOnBuildings);
+    RwTexture* pCustomTexture = nullptr;
+    RwRaster customRaster = {};
+    RwTexture customTexture = {};
+
+    // If a custom texture is provided, create a fake RwTexture
+    if (pTexture != nullptr)
+    {
+        CTextureItem* pTextureItem = pTexture->GetTextureItem();
+        if (pTextureItem && pTextureItem->m_pD3DTexture)
+        {
+            // Create a fake RwRaster that points to the DX9 texture
+            customRaster.renderResource = pTextureItem->m_pD3DTexture;
+            customRaster.width = pTextureItem->m_uiSurfaceSizeX;
+            customRaster.height = pTextureItem->m_uiSurfaceSizeY;
+            
+            // Create a fake RwTexture that points to our raster
+            customTexture.raster = &customRaster;
+            
+            pCustomTexture = &customTexture;
+        }
+    }
+
+    return g_pGame->GetFx()->AddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, fZDistance, bDrawOnWater, bDrawOnBuildings, pCustomTexture);
 }
 
 CClientEffect* CStaticFunctionDefinitions::CreateEffect(CResource& Resource, const SString& strFxName, const CVector& vecPosition, bool bSoundEnable)

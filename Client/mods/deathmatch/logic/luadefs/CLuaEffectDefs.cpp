@@ -653,7 +653,7 @@ bool CLuaEffectDefs::FxCreateParticle(FxParticleSystems eParticleSystem, CVector
 
 bool CLuaEffectDefs::FxAddShadow(eShadowTextureType shadowTextureType, CVector vecPosition, CVector2D vecOffset1, CVector2D vecOffset2, SColor color,
                                  eShadowType shadowType,
-                 float zDistance, bool bDrawOnWater, bool bDrawOnBuildings)
+                 float zDistance, bool bDrawOnWater, bool bDrawOnBuildings, std::optional<CClientTexture*> pTexture)
 {
     if (vecOffset1.Length() > 32)
     {
@@ -667,6 +667,13 @@ bool CLuaEffectDefs::FxAddShadow(eShadowTextureType shadowTextureType, CVector v
     {
         throw std::invalid_argument("Z Distance must be between 0.0 and 3000.0");
     }
+    
+    // If shadowTextureType is CUSTOM but no texture provided, return error
+    if (shadowTextureType == eShadowTextureType::CUSTOM && !pTexture.has_value())
+    {
+        throw std::invalid_argument("Custom shadow texture type requires a texture element");
+    }
+    
     return CStaticFunctionDefinitions::FxAddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, zDistance, bDrawOnWater,
-                                                   bDrawOnBuildings);
+                                                   bDrawOnBuildings, pTexture.value_or(nullptr));
 }

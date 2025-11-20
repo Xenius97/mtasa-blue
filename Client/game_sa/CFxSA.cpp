@@ -345,15 +345,29 @@ bool CFxSA::IsShadowsLimitReached()
 }
 
 bool CFxSA::AddShadow(eShadowTextureType shadowTextureType, const CVector& vecPosition, const CVector2D& vecOffset1, const CVector2D& vecOffset2, SColor color,
-                      eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings)
+                      eShadowType shadowType, float fZDistance, bool bDrawOnWater, bool bDrawOnBuildings, RwTexture* pCustomTexture)
 {
     // Check if we can add more shadows this frame
-    if (IsShadowsLimitReached() || shadowTextureType >= eShadowTextureType::COUNT)
+    if (IsShadowsLimitReached())
         return false;
 
-    // Get the RwTexture for the shadow
-    void*      textureAddress = *(void**)(TEXTURE_FXSystem_Shadow + (int)shadowTextureType * 4);
-    RwTexture* pRwTexture = reinterpret_cast<RwTexture*>(textureAddress);
+    RwTexture* pRwTexture = nullptr;
+
+    // Use custom texture if provided, otherwise use predefined texture
+    if (pCustomTexture != nullptr)
+    {
+        pRwTexture = pCustomTexture;
+    }
+    else if (shadowTextureType < eShadowTextureType::COUNT && shadowTextureType != eShadowTextureType::CUSTOM)
+    {
+        // Get the RwTexture for the shadow
+        void* textureAddress = *(void**)(TEXTURE_FXSystem_Shadow + (int)shadowTextureType * 4);
+        pRwTexture = reinterpret_cast<RwTexture*>(textureAddress);
+    }
+    else
+    {
+        return false;
+    }
 
     // Store the shadow to be rendered
     return StoreShadowToBeRendered(shadowType, pRwTexture, &vecPosition, vecOffset1.fX, vecOffset1.fY, vecOffset2.fX, vecOffset2.fY, color.A, color.R, color.G,
