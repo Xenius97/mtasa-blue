@@ -8082,8 +8082,10 @@ bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureTyp
                                              bool bDrawOnBuildings, CClientTexture* pTexture)
 {
     RwTexture* pCustomTexture = nullptr;
-    RwRaster customRaster = {};
-    RwTexture customTexture = {};
+    
+    // Static storage for fake RwTexture structures (shadows are rendered once per frame, so static is safe)
+    static RwRaster s_customRaster = {};
+    static RwTexture s_customTexture = {};
 
     // If a custom texture is provided, create a fake RwTexture
     if (pTexture != nullptr)
@@ -8103,14 +8105,18 @@ bool CStaticFunctionDefinitions::FxAddShadow(eShadowTextureType shadowTextureTyp
         }
         
         // Create a fake RwRaster that points to the DX9 texture
-        customRaster.renderResource = pTextureItem->m_pD3DTexture;
-        customRaster.width = pTextureItem->m_uiSurfaceSizeX;
-        customRaster.height = pTextureItem->m_uiSurfaceSizeY;
+        memset(&s_customRaster, 0, sizeof(RwRaster));
+        s_customRaster.renderResource = pTextureItem->m_pD3DTexture;
+        s_customRaster.width = pTextureItem->m_uiSurfaceSizeX;
+        s_customRaster.height = pTextureItem->m_uiSurfaceSizeY;
+        s_customRaster.depth = 32;  // Assuming 32-bit depth
+        s_customRaster.format = 21; // D3DFMT_A8R8G8B8
         
         // Create a fake RwTexture that points to our raster
-        customTexture.raster = &customRaster;
+        memset(&s_customTexture, 0, sizeof(RwTexture));
+        s_customTexture.raster = &s_customRaster;
         
-        pCustomTexture = &customTexture;
+        pCustomTexture = &s_customTexture;
     }
 
     return g_pGame->GetFx()->AddShadow(shadowTextureType, vecPosition, vecOffset1, vecOffset2, color, shadowType, fZDistance, bDrawOnWater, bDrawOnBuildings, pCustomTexture);
