@@ -61,6 +61,7 @@
 #include "CBuildingRemovalSA.h"
 #include "CCheckpointSA.h"
 #include "CPtrNodeSingleLinkPoolSA.h"
+#include "CCullZoneManagerSA.h"
 
 extern CGameSA* pGame;
 
