@@ -52,6 +52,9 @@ inline bool CBuildingsPoolSA::AddBuildingToPool(CClientBuilding* pClientBuilding
 
 CClientEntity* CBuildingsPoolSA::GetClientBuilding(CBuildingSAInterface* pGameInterface) const noexcept
 {
+    if (!pGameInterface)
+        return nullptr;
+
     std::uint32_t poolIndex = (*m_ppBuildingPoolInterface)->GetObjectIndexSafe(pGameInterface);
 
     if (poolIndex == static_cast<std::uint32_t>(-1))
@@ -122,16 +125,26 @@ CBuilding* CBuildingsPoolSA::AddBuilding(CClientBuilding* pClientBuilding, uint1
 
 void CBuildingsPoolSA::RemoveBuilding(CBuilding* pBuilding)
 {
-    assert(NULL != pBuilding);
+    // If building is null, return
+    if (!pBuilding)
+        return;
 
+    // Get CBuildingSAInterface object
     CBuildingSAInterface* pInterface = pBuilding->GetBuildingInterface();
+    if (!pInterface)
+        return;
 
+    // Get index in pool
     uint32_t dwElementIndexInPool = (*m_ppBuildingPoolInterface)->GetObjectIndexSafe(pInterface);
     if (dwElementIndexInPool == UINT_MAX)
         return;
 
-    // Remove references to allocated matrix
+    // Get CBuildingSA object
     auto* pBuildingSA = m_buildingPool.entities[dwElementIndexInPool].pEntity;
+    if (!pBuildingSA)
+        return;
+
+    // Remove references to allocated matrix
     pBuildingSA->RemoveAllocatedMatrix();
 
     // Remove building from cover list
@@ -307,9 +320,8 @@ void CBuildingsPoolSA::UpdateIplEntrysPointers(uint32_t offset)
         buildings_array_t* ppArray = (*iplEntryArray)[i];
 
         if (ppArray == nullptr)
-        {
-            return;
-        }
+            continue;
+
         size_t arraySize = MemSA::msize(*ppArray) / sizeof(CBuildingSAInterface*);
         for (size_t j = 0; j < arraySize; j++)
         {
