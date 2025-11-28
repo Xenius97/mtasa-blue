@@ -151,6 +151,19 @@ bool CVehiclePuresyncPacket::Read(NetBitStreamInterface& BitStream)
                 float fPreviousHealth = pVehicle->GetLastSyncedHealth();
                 float fHealth = health.data.fValue;
 
+                // Read damage info
+                ElementID     damageAttackerID = INVALID_ELEMENT_ID;
+                unsigned char damageWeaponType = 0xFF;
+                CVector       damagePos(0, 0, 0);
+                unsigned char damageTyre = 0xFF;
+
+                BitStream.Read(damageAttackerID);
+                BitStream.Read(damageWeaponType);
+                BitStream.Read(damagePos.fX);
+                BitStream.Read(damagePos.fY);
+                BitStream.Read(damagePos.fZ);
+                BitStream.Read(damageTyre);
+
                 // Less than last time?
                 if (fHealth < fPreviousHealth)
                 {
@@ -162,6 +175,32 @@ bool CVehiclePuresyncPacket::Read(NetBitStreamInterface& BitStream)
                         // Call the onVehicleDamage event
                         CLuaArguments Arguments;
                         Arguments.PushNumber(fDeltaHealth);
+
+                        // Push attacker
+                        if (damageAttackerID != INVALID_ELEMENT_ID)
+                        {
+                            CElement* pAttacker = CElementIDs::GetElement(damageAttackerID);
+                            if (pAttacker)
+                                Arguments.PushElement(pAttacker);
+                            else
+                                Arguments.PushBoolean(false);
+                        }
+                        else
+                        {
+                            Arguments.PushBoolean(false);
+                        }
+
+                        // Push weapon
+                        Arguments.PushNumber(damageWeaponType);
+
+                        // Push damage position
+                        Arguments.PushNumber(damagePos.fX);
+                        Arguments.PushNumber(damagePos.fY);
+                        Arguments.PushNumber(damagePos.fZ);
+
+                        // Push tyre
+                        Arguments.PushNumber(damageTyre);
+
                         pVehicle->CallEvent("onVehicleDamage", Arguments);
                     }
                 }

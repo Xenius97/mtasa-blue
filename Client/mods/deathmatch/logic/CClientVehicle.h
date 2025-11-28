@@ -759,4 +759,13 @@ public:
 
     std::array<CVector, static_cast<std::size_t>(VehicleDummies::VEHICLE_DUMMY_COUNT)> m_dummyPositions;
     bool                                     m_copyDummyPositions = true;
+
+    struct
+    {
+        ElementID     attackerID = INVALID_ELEMENT_ID;
+        unsigned char weaponType = 0xFF;
+        CVector       damagePos = CVector(0, 0, 0);
+        unsigned char tyre = 0xFF;
+        bool          bHasData = false;
+    } m_lastDamageInfo;
 };

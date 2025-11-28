@@ -341,6 +341,32 @@ void CUnoccupiedVehicleSync::Packet_UnoccupiedVehicleSync(CUnoccupiedVehicleSync
                                     // Call the onVehicleDamage event
                                     CLuaArguments Arguments;
                                     Arguments.PushNumber(fDeltaHealth);
+
+                                    // Push attacker
+                                    if (vehicle.data.damageAttackerID != INVALID_ELEMENT_ID)
+                                    {
+                                        CElement* pAttacker = CElementIDs::GetElement(vehicle.data.damageAttackerID);
+                                        if (pAttacker)
+                                            Arguments.PushElement(pAttacker);
+                                        else
+                                            Arguments.PushBoolean(false);
+                                    }
+                                    else
+                                    {
+                                        Arguments.PushBoolean(false);
+                                    }
+
+                                    // Push weapon
+                                    Arguments.PushNumber(vehicle.data.damageWeaponType);
+
+                                    // Push damage position
+                                    Arguments.PushNumber(vehicle.data.damagePosX);
+                                    Arguments.PushNumber(vehicle.data.damagePosY);
+                                    Arguments.PushNumber(vehicle.data.damagePosZ);
+
+                                    // Push tyre
+                                    Arguments.PushNumber(vehicle.data.damageTyre);
+
                                     pVehicle->CallEvent("onVehicleDamage", Arguments);
                                 }
                             }

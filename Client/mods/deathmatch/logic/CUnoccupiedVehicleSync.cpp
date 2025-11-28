@@ -354,6 +354,22 @@ bool CUnoccupiedVehicleSync::WriteVehicleInformation(NetBitStreamInterface* pBit
         bSyncVehicle = true;
         vehicle.data.bSyncHealth = true;
         pVehicle->m_LastSyncedData->fHealth = vehicle.data.fHealth;
+        vehicle.data.damageAttackerID = pVehicle->m_lastDamageInfo.attackerID;
+        vehicle.data.damageWeaponType = pVehicle->m_lastDamageInfo.weaponType;
+        vehicle.data.damagePosX = pVehicle->m_lastDamageInfo.damagePos.fX;
+        vehicle.data.damagePosY = pVehicle->m_lastDamageInfo.damagePos.fY;
+        vehicle.data.damagePosZ = pVehicle->m_lastDamageInfo.damagePos.fZ;
+        vehicle.data.damageTyre = pVehicle->m_lastDamageInfo.tyre;
+        pVehicle->m_lastDamageInfo.bHasData = false;
+    }
+    else
+    {
+        vehicle.data.damageAttackerID = INVALID_ELEMENT_ID;
+        vehicle.data.damageWeaponType = 0xFF;
+        vehicle.data.damagePosX = 0.0f;
+        vehicle.data.damagePosY = 0.0f;
+        vehicle.data.damagePosZ = 0.0f;
+        vehicle.data.damageTyre = 0xFF;
     }
 
     if (pVehicle->m_LastSyncedData->Trailer != vehicle.data.trailer)

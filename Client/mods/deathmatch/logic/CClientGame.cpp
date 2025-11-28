@@ -4793,6 +4793,13 @@ bool CClientGame::VehicleDamageHandler(CEntitySAInterface* pVehicleInterface, fl
 
         CClientEntity* pClientAttacker = pPools->GetClientEntity((DWORD*)pAttackerInterface);
 
+        // Store last damage info for sync
+        pClientVehicle->m_lastDamageInfo.bHasData = true;
+        pClientVehicle->m_lastDamageInfo.attackerID = pClientAttacker ? pClientAttacker->GetID() : INVALID_ELEMENT_ID;
+        pClientVehicle->m_lastDamageInfo.weaponType = static_cast<unsigned char>(weaponType);
+        pClientVehicle->m_lastDamageInfo.damagePos = vecDamagePos;
+        pClientVehicle->m_lastDamageInfo.tyre = ucTyre;
+
         // Compose arguments
         // attacker, weapon, loss, damagepos, tyreIdx
         CLuaArguments Arguments;

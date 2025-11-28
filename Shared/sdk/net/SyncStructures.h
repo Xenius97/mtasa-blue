@@ -728,7 +728,16 @@ struct SDrivebyDirectionSync : public ISyncStructure
 //////////////////////////////////////////
 struct SUnoccupiedVehicleSync : public ISyncStructure
 {
-    SUnoccupiedVehicleSync() { *((char*)&data) = 0; }
+    SUnoccupiedVehicleSync()
+    {
+        *((char*)&data) = 0;
+        data.damageAttackerID = INVALID_ELEMENT_ID;
+        data.damageWeaponType = 0xFF;
+        data.damagePosX = 0.0f;
+        data.damagePosY = 0.0f;
+        data.damagePosZ = 0.0f;
+        data.damageTyre = 0xFF;
+    }
 
     bool Read(NetBitStreamInterface& bitStream)
     {
@@ -767,6 +776,12 @@ struct SUnoccupiedVehicleSync : public ISyncStructure
                 SVehicleHealthSync health;
                 bitStream.Read(&health);
                 data.fHealth = health.data.fValue;
+                bitStream.Read(data.damageAttackerID);
+                bitStream.Read(data.damageWeaponType);
+                bitStream.Read(data.damagePosX);
+                bitStream.Read(data.damagePosY);
+                bitStream.Read(data.damagePosZ);
+                bitStream.Read(data.damageTyre);
             }
 
             if (data.bSyncTrailer)
@@ -818,6 +833,12 @@ struct SUnoccupiedVehicleSync : public ISyncStructure
             SVehicleHealthSync health;
             health.data.fValue = data.fHealth;
             bitStream.Write(&health);
+            bitStream.Write(data.damageAttackerID);
+            bitStream.Write(data.damageWeaponType);
+            bitStream.Write(data.damagePosX);
+            bitStream.Write(data.damagePosY);
+            bitStream.Write(data.damagePosZ);
+            bitStream.Write(data.damageTyre);
         }
 
         if (data.bSyncTrailer)
@@ -848,6 +869,12 @@ struct SUnoccupiedVehicleSync : public ISyncStructure
         CVector   vecTurnVelocity;
         float     fHealth;
         ElementID trailer;
+        ElementID     damageAttackerID;
+        unsigned char damageWeaponType;
+        float         damagePosX;
+        float         damagePosY;
+        float         damagePosZ;
+        unsigned char damageTyre;
 
         ElementID     vehicleID;
         unsigned char ucTimeContext;

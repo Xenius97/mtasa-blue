@@ -1685,7 +1685,7 @@ void CGame::AddBuiltInEvents()
     m_Events.AddEvent("onColShapeLeave", "entity, matchingDimension", NULL, false);
 
     // Vehicle events
-    m_Events.AddEvent("onVehicleDamage", "loss", NULL, false);
+    m_Events.AddEvent("onVehicleDamage", "loss, attacker, weapon, x, y, z, tyre", NULL, false);
     m_Events.AddEvent("onVehicleRespawn", "exploded", NULL, false);
     m_Events.AddEvent("onTrailerAttach", "towedBy", NULL, false);
     m_Events.AddEvent("onTrailerDetach", "towedBy", NULL, false);

@@ -1638,6 +1638,21 @@ void CNetAPI::WriteVehiclePuresync(CClientPed* pPlayerModel, CClientVehicle* pVe
         health.data.fValue = pVehicle->GetHealth();
         BitStream.Write(&health);
 
+        // Write damage info
+        bool bHasDamageInfo = pVehicle->m_lastDamageInfo.bHasData;
+        BitStream.WriteBit(bHasDamageInfo);
+        
+        if (bHasDamageInfo)
+        {
+            pVehicle->m_lastDamageInfo.bHasData = false;
+            BitStream.Write(pVehicle->m_lastDamageInfo.attackerID);
+            BitStream.Write(pVehicle->m_lastDamageInfo.weaponType);
+            BitStream.Write(pVehicle->m_lastDamageInfo.damagePos.fX);
+            BitStream.Write(pVehicle->m_lastDamageInfo.damagePos.fY);
+            BitStream.Write(pVehicle->m_lastDamageInfo.damagePos.fZ);
+            BitStream.Write(pVehicle->m_lastDamageInfo.tyre);
+        }
+
         // Write the trailer chain
         CClientVehicle* pTrailer = pVehicle->GetVehicleType() == CLIENTVEHICLE_TRAIN ? pVehicle->GetNextTrainCarriage() : pVehicle->GetRealTowedVehicle();
         while (pTrailer && !pTrailer->IsLocalEntity())
