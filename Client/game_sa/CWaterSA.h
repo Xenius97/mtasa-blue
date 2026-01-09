@@ -70,6 +70,9 @@ public:
     void GetPosition(CVector& vec);
     bool SetPosition(const CVector& vec, void* pChangeSource = NULL);
 
+    void SetFlowX(char flowX) { if (m_pInterface) m_pInterface->m_cFlowX = flowX; }
+    void SetFlowY(char flowY) { if (m_pInterface) m_pInterface->m_cFlowY = flowY; }
+
     void OnChangeLevel(float fOldZ, float fNewZ);
     void Init(bool bIsWorldWaterVertex);
     void Reset();

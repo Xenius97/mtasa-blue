@@ -9537,7 +9537,7 @@ bool CStaticFunctionDefinitions::SetTeamFriendlyFire(CTeam* pTeam, bool bFriendl
     return false;
 }
 
-CWater* CStaticFunctionDefinitions::CreateWater(CResource* pResource, CVector* pV1, CVector* pV2, CVector* pV3, CVector* pV4, bool bShallow)
+CWater* CStaticFunctionDefinitions::CreateWater(CResource* pResource, CVector* pV1, CVector* pV2, CVector* pV3, CVector* pV4, bool bShallow, float flowX, float flowY)
 {
     if (!pV1 || !pV2 || !pV3)
         return nullptr;
@@ -9553,6 +9553,9 @@ CWater* CStaticFunctionDefinitions::CreateWater(CResource* pResource, CVector* p
 
     if (pWater->GetWaterType() == CWater::QUAD)
         pWater->SetVertex(3, *pV4);
+
+    pWater->SetFlowX(flowX);
+    pWater->SetFlowY(flowY);
 
     if (!pWater->Valid())
     {

@@ -16,8 +16,8 @@ class CWaterManager
 {
 public:
     virtual CWaterPoly* GetPolyAtPoint(const CVector& vecPosition) = 0;
-    virtual CWaterPoly* CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow = false) = 0;
-    virtual CWaterPoly* CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow = false) = 0;
+    virtual CWaterPoly* CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow = false, char flowX = 0, char flowY = 0) = 0;
+    virtual CWaterPoly* CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow = false, char flowX = 0, char flowY = 0) = 0;
     virtual bool        DeletePoly(CWaterPoly* pPoly) = 0;
 
     virtual bool GetWaterLevel(const CVector& vecPosition, float* pfLevel, bool ignoreDistanceToWaterThreshold, CVector* pvecUnknown) = 0;

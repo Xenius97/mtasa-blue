@@ -596,9 +596,10 @@ void CWaterManagerSA::GetZonesIntersecting(const CVector& startPos, const CVecto
     }
 }
 
-CWaterVertex* CWaterManagerSA::CreateVertex(const CVector& vecPosition)
+CWaterVertex* CWaterManagerSA::CreateVertex(const CVector& vecPosition, char flowX, char flowY)
 {
-    WORD wID = ((CreateWaterVertex_t)FUNC_CreateWaterVertex)((long)vecPosition.fX & ~1, (long)vecPosition.fY & ~1, vecPosition.fZ, 0.2f, 0.1f, 0);
+    WORD wFlow = ((unsigned char)flowY << 8) | (unsigned char)flowX;
+    WORD wID = ((CreateWaterVertex_t)FUNC_CreateWaterVertex)((long)vecPosition.fX & ~1, (long)vecPosition.fY & ~1, vecPosition.fZ, 0.2f, 0.1f, wFlow);
     return &m_Vertices[wID];
 }
 
@@ -622,7 +623,7 @@ CWaterPoly* CWaterManagerSA::GetPolyAtPoint(const CVector& vecPosition)
     return NULL;
 }
 
-CWaterPoly* CWaterManagerSA::CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow)
+CWaterPoly* CWaterManagerSA::CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow, char flowX, char flowY)
 {
     if (*(DWORD*)VAR_NumWaterQuads >= NUM_NewWaterQuads)
         return NULL;
@@ -642,10 +643,10 @@ CWaterPoly* CWaterManagerSA::CreateQuad(const CVector& vecBL, const CVector& vec
     if (zones.empty())
         return NULL;
 
-    CWaterVertex* pV1 = CreateVertex(vecBL);
-    CWaterVertex* pV2 = CreateVertex(vecBR);
-    CWaterVertex* pV3 = CreateVertex(vecTL);
-    CWaterVertex* pV4 = CreateVertex(vecTR);
+    CWaterVertex* pV1 = CreateVertex(vecBL, flowX, flowY);
+    CWaterVertex* pV2 = CreateVertex(vecBR, flowX, flowY);
+    CWaterVertex* pV3 = CreateVertex(vecTL, flowX, flowY);
+    CWaterVertex* pV4 = CreateVertex(vecTR, flowX, flowY);
 
     CWaterQuadSAInterface* pInterface = g_pWaterManager->m_QuadPool;
     while (*(DWORD*)&pInterface->m_wVertexIDs != 0)
@@ -671,7 +672,7 @@ CWaterPoly* CWaterManagerSA::CreateQuad(const CVector& vecBL, const CVector& vec
     return pPoly;
 }
 
-CWaterPoly* CWaterManagerSA::CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow)
+CWaterPoly* CWaterManagerSA::CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow, char flowX, char flowY)
 {
     if (*(DWORD*)VAR_NumWaterVertices >= NUM_NewWaterVertices)
         return NULL;
@@ -690,9 +691,9 @@ CWaterPoly* CWaterManagerSA::CreateTriangle(const CVector& vec1, const CVector& 
     if (zones.empty())
         return NULL;
 
-    CWaterVertex* pV1 = CreateVertex(vec1);
-    CWaterVertex* pV2 = CreateVertex(vec2);
-    CWaterVertex* pV3 = CreateVertex(vec3);
+    CWaterVertex* pV1 = CreateVertex(vec1, flowX, flowY);
+    CWaterVertex* pV2 = CreateVertex(vec2, flowX, flowY);
+    CWaterVertex* pV3 = CreateVertex(vec3, flowX, flowY);
 
     CWaterTriangleSAInterface* pInterface = g_pWaterManager->m_TrianglePool;
     while (*(DWORD*)&pInterface->m_wVertexIDs != 0)

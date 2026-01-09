@@ -67,6 +67,7 @@ int CLuaWaterDefs::CreateWater(lua_State* luaVM)
     CVector          v1, v2, v3, v4;
     CVector*         pv4 = NULL;
     bool             bShallow;
+    float            flowX, flowY;
     CScriptArgReader argStream(luaVM);
     argStream.ReadVector3D(v1);
     argStream.ReadVector3D(v2);
@@ -79,10 +80,12 @@ int CLuaWaterDefs::CreateWater(lua_State* luaVM)
     }
 
     argStream.ReadBool(bShallow, false);
+    argStream.ReadNumber(flowX, 0.0f);
+    argStream.ReadNumber(flowY, 0.0f);
 
     if (!argStream.HasErrors())
     {
-        CWater* pWater = CStaticFunctionDefinitions::CreateWater(pLuaMain->GetResource(), &v1, &v2, &v3, pv4, bShallow);
+        CWater* pWater = CStaticFunctionDefinitions::CreateWater(pLuaMain->GetResource(), &v1, &v2, &v3, pv4, bShallow, flowX, flowY);
         if (pWater)
         {
             CElementGroup* pGroup = pLuaMain->GetResource()->GetElementGroup();

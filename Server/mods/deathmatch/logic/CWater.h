@@ -42,6 +42,11 @@ public:
     bool       GetVertex(int index, CVector& vecPosition) const;
     void       SetVertex(int index, CVector& vecPosition);
 
+    float GetFlowX() const { return m_flowX; }
+    float GetFlowY() const { return m_flowY; }
+    void SetFlowX(float flowX) { m_flowX = flowX; }
+    void SetFlowY(float flowY) { m_flowY = flowY; }
+
     bool Valid();
 
 protected:
@@ -57,4 +62,6 @@ private:
     SFixedArray<CVector, 4> m_Vertices;
     EWaterType              m_WaterType;
     bool                    m_bShallow;
+    float                   m_flowX;
+    float                   m_flowY;
 };

@@ -148,11 +148,11 @@ public:
     void          GetZonesContaining(const CVector& v1, const CVector& v2, const CVector& v3, std::vector<CWaterZoneSA*>& out);
     void          GetZonesIntersecting(const CVector& startPos, const CVector& endPos, std::vector<CWaterZoneSA*>& vecOut);
 
-    CWaterVertex* CreateVertex(const CVector& vecPosition);
+    CWaterVertex* CreateVertex(const CVector& vecPosition, char flowX = 0, char flowY = 0);
 
     CWaterPoly* GetPolyAtPoint(const CVector& vecPosition);
-    CWaterPoly* CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow = false);
-    CWaterPoly* CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow = false);
+    CWaterPoly* CreateQuad(const CVector& vecBL, const CVector& vecBR, const CVector& vecTL, const CVector& vecTR, bool bShallow = false, char flowX = 0, char flowY = 0);
+    CWaterPoly* CreateTriangle(const CVector& vec1, const CVector& vec2, const CVector& vec3, bool bShallow = false, char flowX = 0, char flowY = 0);
     bool        DeletePoly(CWaterPoly* pPoly);
 
     bool GetWaterLevel(const CVector& vecPosition, float* pfLevel, bool ignoreDistanceToWaterThreshold, CVector* pvecUnknown);

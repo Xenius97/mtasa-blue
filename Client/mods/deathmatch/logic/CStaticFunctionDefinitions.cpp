@@ -6575,13 +6575,13 @@ bool CStaticFunctionDefinitions::TestLineAgainstWater(CVector& vecStart, CVector
     return g_pGame->GetWaterManager()->TestLineAgainstWater(vecStart, vecEnd, &vecCollision);
 }
 
-CClientWater* CStaticFunctionDefinitions::CreateWater(CResource& resource, CVector* pV1, CVector* pV2, CVector* pV3, CVector* pV4, bool bShallow)
+CClientWater* CStaticFunctionDefinitions::CreateWater(CResource& resource, CVector* pV1, CVector* pV2, CVector* pV3, CVector* pV4, bool bShallow, float flowX, float flowY)
 {
     CClientWater* pWater;
     if (pV4)
-        pWater = new CClientWater(g_pClientGame->GetManager(), INVALID_ELEMENT_ID, *pV1, *pV2, *pV3, *pV4, bShallow);
+        pWater = new CClientWater(g_pClientGame->GetManager(), INVALID_ELEMENT_ID, *pV1, *pV2, *pV3, *pV4, bShallow, flowX, flowY);
     else
-        pWater = new CClientWater(g_pClientGame->GetManager(), INVALID_ELEMENT_ID, *pV1, *pV2, *pV3, bShallow);
+        pWater = new CClientWater(g_pClientGame->GetManager(), INVALID_ELEMENT_ID, *pV1, *pV2, *pV3, bShallow, flowX, flowY);
 
     pWater->SetParent(resource.GetResourceDynamicEntity());
     resource.AddToElementGroup(pWater);

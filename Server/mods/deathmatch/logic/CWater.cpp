@@ -29,6 +29,8 @@ CWater::CWater(CWaterManager* pWaterManager, CElement* pParent, EWaterType water
         m_Vertices[3] = CVector(10.0f, 10.0f, 0.0f);
 
     m_bShallow = bShallow;
+    m_flowX = 0.0f;
+    m_flowY = 0.0f;
 
     if (m_pWaterManager)
         m_pWaterManager->AddToList(this);
@@ -136,6 +138,12 @@ bool CWater::ReadSpecialData(const int iLine)
 
     if (!GetCustomDataBool("shallow", m_bShallow, true))
         m_bShallow = false;
+
+    if (!GetCustomDataFloat("flowX", m_flowX, true))
+        m_flowX = 0.0f;
+
+    if (!GetCustomDataFloat("flowY", m_flowY, true))
+        m_flowY = 0.0f;
 
     RoundVertices();
     if (!Valid())

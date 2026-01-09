@@ -1106,6 +1106,8 @@ bool CEntityAddPacket::Write(NetBitStreamInterface& BitStream) const
                         BitStream.Write(vecVertex.fZ);
                     }
                     BitStream.WriteBit(pWater->IsWaterShallow());
+                    BitStream.Write(pWater->GetFlowX());
+                    BitStream.Write(pWater->GetFlowY());
                     break;
                 }
 

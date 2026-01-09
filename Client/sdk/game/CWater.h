@@ -27,6 +27,8 @@ public:
     virtual WORD GetID() = 0;
     virtual void GetPosition(CVector& vec) = 0;
     virtual bool SetPosition(const CVector& vec, void* pChangeSource = NULL) = 0;
+    virtual void SetFlowX(char flowX) = 0;
+    virtual void SetFlowY(char flowY) = 0;
 };
 
 class CWaterPoly

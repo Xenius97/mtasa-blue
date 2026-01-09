@@ -4156,15 +4156,19 @@ retry:
                     bool bShallow = false;
                     bitStream.ReadBit(bShallow);
 
+                    float flowX = 0.0f, flowY = 0.0f;
+                    bitStream.Read(flowX);
+                    bitStream.Read(flowY);
+
                     CClientWater* pWater = NULL;
                     if (ucNumVertices == 3)
                     {
-                        pWater = new CClientWater(g_pClientGame->GetManager(), EntityID, vecVertices[0], vecVertices[1], vecVertices[2], bShallow);
+                        pWater = new CClientWater(g_pClientGame->GetManager(), EntityID, vecVertices[0], vecVertices[1], vecVertices[2], bShallow, flowX, flowY);
                     }
                     else
                     {
                         pWater =
-                            new CClientWater(g_pClientGame->GetManager(), EntityID, vecVertices[0], vecVertices[1], vecVertices[2], vecVertices[3], bShallow);
+                            new CClientWater(g_pClientGame->GetManager(), EntityID, vecVertices[0], vecVertices[1], vecVertices[2], vecVertices[3], bShallow, flowX, flowY);
                     }
                     if (!pWater->Exists())
                     {
