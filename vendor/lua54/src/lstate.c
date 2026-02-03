@@ -357,7 +357,7 @@ LUA_API int lua_resetthread (lua_State *L) {
 }
 
 
-LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
+LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud, void *mtasaowner) {
   int i;
   lua_State *L;
   global_State *g;
@@ -374,6 +374,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   incnny(L);  /* main thread is always non yieldable */
   g->frealloc = f;
   g->ud = ud;
+  g->mtasaowner = mtasaowner;
   g->warnf = NULL;
   g->ud_warn = NULL;
   g->mainthread = L;

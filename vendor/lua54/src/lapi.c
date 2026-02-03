@@ -151,6 +151,12 @@ LUA_API lua_CFunction lua_atpanic (lua_State *L, lua_CFunction panicf) {
 }
 
 
+LUA_API void *lua_getmtasaowner(lua_State* L)
+{
+    return G(L)->mtasaowner;
+}
+
+
 LUA_API lua_Number lua_version (lua_State *L) {
   UNUSED(L);
   return LUA_VERSION_NUM;
