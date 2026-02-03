@@ -63,7 +63,8 @@ extern CNetServer* g_pRealNetServer;
 #include "luascripts/inspect.lua.h"
 
 CLuaMain::CLuaMain(CLuaManager* pLuaManager, CObjectManager* pObjectManager, CPlayerManager* pPlayerManager, CVehicleManager* pVehicleManager,
-                   CBlipManager* pBlipManager, CRadarAreaManager* pRadarAreaManager, CMapManager* pMapManager, CResource* pResourceOwner, bool bEnableOOP)
+                   CBlipManager* pBlipManager, CRadarAreaManager* pRadarAreaManager, CMapManager* pMapManager, CResource* pResourceOwner, bool bEnableOOP,
+                   eLuaVersion luaVersion)
 {
     // Initialise everything to be setup in the Start function
     m_pLuaManager = pLuaManager;
@@ -85,6 +86,7 @@ CLuaMain::CLuaMain(CLuaManager* pLuaManager, CObjectManager* pObjectManager, CPl
     m_pMapManager = pMapManager;
 
     m_bEnableOOP = bEnableOOP;
+    m_luaVersion = luaVersion;
 
     CPerfStatLuaMemory::GetSingleton()->OnLuaMainCreate(this);
     CPerfStatLuaTiming::GetSingleton()->OnLuaMainCreate(this);

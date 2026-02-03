@@ -27,7 +27,7 @@ SString             CLuaMain::ms_strExpectedUndumpHash;
 #include "luascripts/exports.lua.h"
 #include "luascripts/inspect.lua.h"
 
-CLuaMain::CLuaMain(CLuaManager* pLuaManager, CResource* pResourceOwner, bool bEnableOOP)
+CLuaMain::CLuaMain(CLuaManager* pLuaManager, CResource* pResourceOwner, bool bEnableOOP, eLuaVersion luaVersion)
 {
     // Initialise everything to be setup in the Start function
     m_pLuaManager = pLuaManager;
@@ -39,6 +39,7 @@ CLuaMain::CLuaMain(CLuaManager* pLuaManager, CResource* pResourceOwner, bool bEn
     m_pResource = pResourceOwner;
 
     m_bEnableOOP = bEnableOOP;
+    m_luaVersion = luaVersion;
 
     CClientPerfStatLuaMemory::GetSingleton()->OnLuaMainCreate(this);
     CClientPerfStatLuaTiming::GetSingleton()->OnLuaMainCreate(this);

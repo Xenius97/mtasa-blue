@@ -18,6 +18,7 @@ class CLuaMain;
 #include "lua/CLuaVector3.h"
 #include "lua/CLuaVector4.h"
 #include "lua/CLuaMatrix.h"
+#include "lua/CLuaCompatibility.h"
 
 #include "CLuaFunctionDefs.h"
 
@@ -37,7 +38,7 @@ class CLuaMain  //: public CClient
 {
 public:
     ZERO_ON_NEW
-    CLuaMain(class CLuaManager* pLuaManager, CResource* pResourceOwner, bool bEnableOOP);
+    CLuaMain(class CLuaManager* pLuaManager, CResource* pResourceOwner, bool bEnableOOP, eLuaVersion luaVersion = LUA_VERSION_51);
     ~CLuaMain();
 
     bool LoadScriptFromBuffer(const char* cpBuffer, unsigned int uiSize, const char* szFileName);
@@ -101,6 +102,11 @@ private:
     static SString                                  ms_strExpectedUndumpHash;
 
     bool m_bEnableOOP;
+    eLuaVersion m_luaVersion;  // Lua version for this VM
+
+public:
+    bool IsOOPEnabled() { return m_bEnableOOP; }
+    eLuaVersion GetLuaVersion() const { return m_luaVersion; }
 
 public:
     CFastHashMap<const void*, CRefInfo> m_CallbackTable;

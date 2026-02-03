@@ -17,6 +17,7 @@
 #include "SResourceStartOptions.h"
 #include "CResourceFile.h"
 #include "CAclRightName.h"
+#include "lua/CLuaCompatibility.h"
 #include <unzip.h>
 #include <list>
 #include <vector>
@@ -315,6 +316,7 @@ public:
     const CMtaVersion& GetMinClientFromMetaXml() const noexcept { return m_strMinClientFromMetaXml; }
 
     bool IsOOPEnabledInMetaXml() const noexcept { return m_bOOPEnabledInMetaXml; }
+    eLuaVersion GetLuaVersion() const noexcept { return m_luaVersion; }
 
     bool CheckFunctionRightCache(lua_CFunction f, bool* pbOutAllowed);
     void UpdateFunctionRightCache(lua_CFunction f, bool bAllowed);
@@ -437,6 +439,8 @@ private:
     bool m_bLinked = false;        // if true, the included resources are already linked to this resource
     bool m_bIsPersistent = false;  // if true, the resource will remain even if it has no Dependents, mainly if started by the user or the startup
     bool m_bDestroyed = false;
+
+    eLuaVersion m_luaVersion = LUA_VERSION_51;  // Lua version for this resource (default 5.1 for backward compatibility)
 
     CXMLNode* m_pNodeSettings = nullptr;  // Settings XML node, read from meta.xml and copied into it's own instance
     CXMLNode* m_pNodeStorage = nullptr;   // Dummy XML node used for temporary storage of stuff returned by CSettings::Get

@@ -267,6 +267,13 @@ bool CResource::Load()
                     else
                         m_uiVersionState = 2;
                 }
+                
+                // Parse lua_version attribute (defaults to 5.1 for backward compatibility)
+                pVersion = Attributes.Find("lua_version");
+                if (pVersion)
+                {
+                    m_luaVersion = ParseLuaVersion(pVersion->GetValue().c_str());
+                }
             }
 
             // Read everything that's included. If one of these fail, delete the XML we created and return
@@ -1223,7 +1230,7 @@ bool CResource::CreateVM(bool bEnableOOP)
 {
     if (!m_pVM)
     {
-        m_pVM = g_pGame->GetLuaManager()->CreateVirtualMachine(this, bEnableOOP);
+        m_pVM = g_pGame->GetLuaManager()->CreateVirtualMachine(this, bEnableOOP, m_luaVersion);
         m_pResourceManager->NotifyResourceVMOpen(this, m_pVM);
     }
 

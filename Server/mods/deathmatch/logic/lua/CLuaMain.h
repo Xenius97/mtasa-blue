@@ -17,6 +17,7 @@ class CLuaMain;
 #include "lua/CLuaVector3.h"
 #include "lua/CLuaVector4.h"
 #include "lua/CLuaMatrix.h"
+#include "lua/CLuaCompatibility.h"
 #include "CLuaModuleManager.h"
 #include "../CTextDisplay.h"
 
@@ -40,7 +41,8 @@ class CLuaMain  //: public CClient
 public:
     ZERO_ON_NEW
     CLuaMain(class CLuaManager* pLuaManager, CObjectManager* pObjectManager, CPlayerManager* pPlayerManager, CVehicleManager* pVehicleManager,
-             CBlipManager* pBlipManager, CRadarAreaManager* pRadarAreaManager, CMapManager* pMapManager, CResource* pResourceOwner, bool bEnableOOP);
+             CBlipManager* pBlipManager, CRadarAreaManager* pRadarAreaManager, CMapManager* pMapManager, CResource* pResourceOwner, bool bEnableOOP,
+             eLuaVersion luaVersion = LUA_VERSION_51);
 
     ~CLuaMain();
 
@@ -115,6 +117,7 @@ private:
 
 public:
     bool IsOOPEnabled() { return m_bEnableOOP; }
+    eLuaVersion GetLuaVersion() const { return m_luaVersion; }
 
 private:
     static void InstructionCountHook(lua_State* luaVM, lua_Debug* pDebug);
@@ -139,6 +142,7 @@ private:
     list<CTextItem*>                                m_TextItems;
 
     bool m_bEnableOOP;
+    eLuaVersion m_luaVersion;  // Lua version for this VM
 
     bool m_bBeingDeleted;  // prevent it being deleted twice
 
