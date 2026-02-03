@@ -1,6 +1,0 @@
-<meta>
-    <info author="MTA:SA Team" version="1.0" lua_version="5.4" description="Example resource using Lua 5.4 features"/>
-    
-    <script src="server.lua" type="server" />
-    <script src="client.lua" type="client" />
-</meta>
