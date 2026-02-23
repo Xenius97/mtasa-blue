@@ -30,6 +30,12 @@ bool CPlayerJoinDataPacket::Read(NetBitStreamInterface& BitStream)
     {
         // Shrink string sizes to fit
         m_strNick = *m_strNick;
+
+        // Optional connect args
+        std::string strArgs;
+        if (BitStream.ReadString(strArgs))
+            m_strConnectArgs = strArgs;
+
         return true;
     }
 

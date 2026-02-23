@@ -1924,6 +1924,7 @@ void CGame::Packet_PlayerJoinData(CPlayerJoinDataPacket& Packet)
                             pPlayer->SetSerial(strSerial, 0);
                             pPlayer->SetSerial(strExtra, 1);
                             pPlayer->SetPlayerVersion(strPlayerVersion);
+                            pPlayer->SetConnectArgs(Packet.GetConnectArgs());
 
                             // Check if client must update
                             if (IsBelowMinimumClient(pPlayer->GetPlayerVersion()) && !pPlayer->ShouldIgnoreMinClientVersionChecks())
@@ -4369,6 +4370,16 @@ void CGame::PlayerCompleteConnect(CPlayer* pPlayer)
     Arguments.PushString(pPlayer->GetSerial().c_str());
     Arguments.PushNumber(pPlayer->GetMTAVersion());
     Arguments.PushString(pPlayer->GetPlayerVersion());
+
+    CLuaArguments connectArgsTable;
+    const auto    connectParams = SharedUtil::ParseQueryString(pPlayer->GetConnectArgs());
+    for (const auto& kv : connectParams)
+    {
+        connectArgsTable.PushString(kv.first);
+        connectArgsTable.PushString(kv.second);
+    }
+    Arguments.PushTable(&connectArgsTable);
+
     if (!g_pGame->GetMapManager()->GetRootElement()->CallEvent("onPlayerConnect", Arguments))
     {
         // event cancelled, disconnect the player

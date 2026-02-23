@@ -737,6 +737,10 @@ bool CClientGame::StartGame(const char* szNick, const char* szPassword, eServerT
             std::string strUser;
             pBitStream->Write(strUser.c_str(), MAX_SERIAL_LENGTH);
 
+            // Append optional connect args from the mtasa:// URI ("key=value&...")
+            std::string strConnectArgs = g_pCore->ConsumePendingConnectArgs();
+            pBitStream->WriteString(strConnectArgs);
+
             // Send the packet as joindata
             g_pNet->SendPacket(PACKET_ID_PLAYER_JOINDATA, pBitStream, PACKET_PRIORITY_HIGH, PACKET_RELIABILITY_RELIABLE_ORDERED);
             g_pNet->DeallocateNetBitStream(pBitStream);

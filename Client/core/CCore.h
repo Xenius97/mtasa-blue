@@ -299,6 +299,9 @@ public:
 
     void OnPostColorFilterRender() override;
 
+    void        SetPendingConnectArgs(const std::string& strArgs) override { m_pConnectManager->SetPendingArgs(strArgs); }
+    std::string ConsumePendingConnectArgs() override { return m_pConnectManager->ConsumePendingArgs(); }
+
 private:
     void ApplyCoreInitSettings();
 

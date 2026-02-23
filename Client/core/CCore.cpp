@@ -1726,6 +1726,21 @@ SString CCore::GetConnectCommandFromURI(const char* szURI)
 
 void CCore::GetConnectParametersFromURI(const char* szURI, std::string& strHost, unsigned short& usPort, std::string& strNick, std::string& strPassword)
 {
+    // Extract and store any query string (e.g. "?foo=1&bar=2")
+    std::string strURIClean(szURI ? szURI : "");
+    const auto  qPos = strURIClean.find('?');
+    if (qPos != std::string::npos)
+    {
+        std::string strQuery = strURIClean.substr(qPos + 1);
+        m_pConnectManager->SetPendingArgs(strQuery);
+        strURIClean.erase(qPos);
+        szURI = strURIClean.c_str();
+    }
+    else
+    {
+        m_pConnectManager->SetPendingArgs("");
+    }
+
     // Grab the length of the string
     size_t sizeURI = strlen(szURI);
 

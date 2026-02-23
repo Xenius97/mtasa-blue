@@ -100,6 +100,9 @@ public:
     const CMtaVersion& GetPlayerVersion() { return m_strPlayerVersion; };
     bool               ShouldIgnoreMinClientVersionChecks();
 
+    const SString& GetConnectArgs() const { return m_strConnectArgs; }
+    void           SetConnectArgs(const SString& args) { m_strConnectArgs = args; }
+
     bool IsMuted() { return m_bIsMuted; };
     void SetMuted(bool bSetMuted) { m_bIsMuted = bSetMuted; };
     bool IsJoined() { return m_bIsJoined; }
@@ -358,6 +361,7 @@ private:
     unsigned short m_usMTAVersion;
     unsigned short m_usBitStreamVersion;
     CMtaVersion    m_strPlayerVersion;
+    SString        m_strConnectArgs;
     bool           m_bIsMuted;
     bool           m_bIsLeavingServer;
     bool           m_bIsRedirecting;

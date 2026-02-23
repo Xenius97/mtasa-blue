@@ -191,6 +191,9 @@ public:
     virtual void           SetLastConnectedServerName(const SString& strServerName) = 0;
 
     virtual void OnPostColorFilterRender() = 0;
+
+    virtual void        SetPendingConnectArgs(const std::string& strArgs) = 0;
+    virtual std::string ConsumePendingConnectArgs() = 0;
 };
 
 class CClientTime

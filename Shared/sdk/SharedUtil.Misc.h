@@ -2009,6 +2009,51 @@ namespace SharedUtil
 
         const T* operator->() const { return pPointer->GetData(); }
     };
+
+    // Decodes a percent-encoded URL string (%XX sequences).
+    inline SString UrlDecode(const SString& str)
+    {
+        SString out;
+        out.reserve(str.size());
+        for (size_t i = 0; i < str.size(); ++i)
+        {
+            if (str[i] == '%' && i + 2 < str.size() && isxdigit((unsigned char)str[i + 1]) && isxdigit((unsigned char)str[i + 2]))
+            {
+                char hex[3] = {str[i + 1], str[i + 2], '\0'};
+                out += static_cast<char>(std::strtol(hex, nullptr, 16));
+                i += 2;
+            }
+            else
+            {
+                out += str[i];
+            }
+        }
+        return out;
+    }
+
+    // Parses a "key=value&key2=value2" query string into a map. Keys and values are URL-decoded.
+    inline std::map<SString, SString> ParseQueryString(const SString& query)
+    {
+        std::map<SString, SString> result;
+        size_t                     start = 0;
+        while (start <= query.size())
+        {
+            size_t amp = query.find('&', start);
+            if (amp == SString::npos)
+                amp = query.size();
+            size_t eq = query.find('=', start);
+            if (eq != SString::npos && eq < amp)
+            {
+                SString key = UrlDecode(query.substr(start, eq - start));
+                SString val = UrlDecode(query.substr(eq + 1, amp - eq - 1));
+                if (!key.empty())
+                    result[key] = val;
+            }
+            start = amp + 1;
+        }
+        return result;
+    }
+
 };  // namespace SharedUtil
 
 using namespace SharedUtil;

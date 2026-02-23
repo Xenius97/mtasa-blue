@@ -41,6 +41,8 @@ public:
 
     bool IsOptionalUpdateInfoRequired() { return m_bOptionalUpdateInfoRequired; }
 
+    const SString& GetConnectArgs() const { return m_strConnectArgs; }
+
 private:
     unsigned short m_usNetVersion;
     unsigned short m_usMTAVersion;
@@ -50,4 +52,5 @@ private:
     SString        m_strNick;
     MD5            m_Password;
     CMtaVersion    m_strPlayerVersion;
+    SString        m_strConnectArgs;
 };

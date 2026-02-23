@@ -249,6 +249,10 @@ void CInputRPCs::ForceReconnect(NetBitStreamInterface& bitStream)
 
                 bitStream.Read(szPassword, ucPassword);
 
+                std::string strArgs;
+                if (bitStream.ReadString(strArgs) && !strArgs.empty())
+                    g_pCore->SetPendingConnectArgs(strArgs);
+
                 if (szPassword[0])
                 {
                     g_pCore->Reconnect(szHost, usPort, szPassword, false);

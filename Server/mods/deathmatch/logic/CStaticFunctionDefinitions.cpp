@@ -3580,7 +3580,8 @@ bool CStaticFunctionDefinitions::SetPlayerBlurLevel(CElement* pElement, unsigned
     return false;
 }
 
-bool CStaticFunctionDefinitions::RedirectPlayer(CElement* pElement, const char* szHost, unsigned short usPort, const char* szPassword)
+bool CStaticFunctionDefinitions::RedirectPlayer(CElement* pElement, const char* szHost, unsigned short usPort, const char* szPassword,
+                                                const char* szConnectArgs)
 {
     if (IS_PLAYER(pElement))
     {
@@ -3601,6 +3602,10 @@ bool CStaticFunctionDefinitions::RedirectPlayer(CElement* pElement, const char* 
             BitStream.pBitStream->Write(ucPasswordLength);
             BitStream.pBitStream->Write(szPassword, ucPasswordLength);
         }
+
+        std::string strArgs = szConnectArgs ? szConnectArgs : "";
+        BitStream.pBitStream->WriteString(strArgs);
+
         pPlayer->SetRedirecting(true);
         pPlayer->Send(CLuaPacket(FORCE_RECONNECT, *BitStream.pBitStream));
 

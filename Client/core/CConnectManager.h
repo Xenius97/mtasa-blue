@@ -26,6 +26,14 @@ public:
 
     bool Abort();
 
+    void        SetPendingArgs(const std::string& args) noexcept { m_strPendingArgs = args; }
+    std::string ConsumePendingArgs() noexcept
+    {
+        std::string args;
+        std::swap(args, m_strPendingArgs);
+        return args;
+    }
+
     bool WasQuickConnect() const noexcept { return m_quickConnect; }
 
     void DoPulse();
@@ -62,6 +70,7 @@ private:
     CServerListItem* m_pServerItem;
     bool             m_bNotifyServerBrowser;
 
-    bool CheckNickProvided(const char* szNick);
-    bool m_quickConnect{false};
+    bool        CheckNickProvided(const char* szNick);
+    bool        m_quickConnect{false};
+    std::string m_strPendingArgs;
 };

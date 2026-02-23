@@ -1168,16 +1168,27 @@ int CLuaPlayerDefs::RedirectPlayer(lua_State* luaVM)
     SString        strHost;
     unsigned short usPort;
     SString        strPassword;
+    CStringMap     connectArgs;
 
     CScriptArgReader argStream(luaVM);
     argStream.ReadUserData(pElement);
     argStream.ReadString(strHost);
     argStream.ReadNumber(usPort);
     argStream.ReadString(strPassword, "");
+    if (argStream.NextIsTable())
+        argStream.ReadStringMap(connectArgs);
 
     if (!argStream.HasErrors())
     {
-        if (CStaticFunctionDefinitions::RedirectPlayer(pElement, strHost, usPort, strPassword.empty() ? nullptr : *strPassword))
+        SString strConnectArgs;
+        for (const auto& kv : connectArgs)
+        {
+            if (!strConnectArgs.empty())
+                strConnectArgs += "&";
+            strConnectArgs += kv.first + "=" + kv.second;
+        }
+        if (CStaticFunctionDefinitions::RedirectPlayer(pElement, strHost, usPort, strPassword.empty() ? nullptr : *strPassword,
+                                                       strConnectArgs.empty() ? nullptr : *strConnectArgs))
         {
             lua_pushboolean(luaVM, true);
             return 1;
