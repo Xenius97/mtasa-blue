@@ -2887,6 +2887,17 @@ void CClientVehicle::Create()
                     SetComponentVisible((*iter).first, false);
                 }
             }
+
+            // For variant values that exceed GTA SA's native range (0-5), attempt to show a
+            // named extra component on the vehicle. Modded vehicles can have extras named
+            // "extra_7", "extra_8", etc. for variant values 6, 7, … respectively.
+            // For standard GTA SA vehicles these calls do nothing (the named frame doesn't exist).
+            auto showNamedVariantExtra = [&](unsigned char ucVariant) {
+                if (ucVariant > 5 && ucVariant < 254)   // only for values beyond GTA SA's native range
+                    SetComponentVisible(SString("extra_%u", static_cast<unsigned int>(ucVariant) + 1), true);
+            };
+            showNamedVariantExtra(m_ucVariation);
+            showNamedVariantExtra(m_ucVariation2);
         }
 
         // Merge saved visibility data from previous variant/handling updates
